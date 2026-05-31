@@ -68,42 +68,57 @@ Notes:
 
 ## Deployment
 
-This project is best deployed as a single Flask web service with:
+This project is best deployed for free with:
 
-- `Railway` for the app host
-- `Railway Postgres` for the database
-- A persistent volume mounted at `/data/uploads` for image uploads
+- `Render` for the Flask web service
+- `Supabase` for PostgreSQL and image storage
 
 ### Why this setup
 
+- Render has a free Python web service tier.
+- Supabase provides a free Postgres database and file storage.
 - The app is server-rendered Flask, so it does not need a separate Vercel frontend.
-- Uploads are stored on disk by default, so the host needs persistent storage or an object-storage refactor.
-- Railway can run the app, host Postgres, and provide a persistent volume without splitting the architecture.
+- Moving uploads to Supabase Storage avoids relying on Render’s ephemeral filesystem.
 
-### Docker deploy
+### Render setup
 
-Build the included `Dockerfile` locally or push the repo to Railway and let it build the image.
+Use the included [render.yaml](/home/mohammed/LOST-FOUND/render.yaml) blueprint or create a free Python web service manually.
 
-Environment variables for production:
+Render service settings:
+
+- `Build Command`: `pip install -r requirements.txt`
+- `Start Command`: `waitress-serve --listen=0.0.0.0:$PORT run:app`
+- `Plan`: `Free`
+
+### Supabase setup
+
+Create a free Supabase project and add:
+
+- a PostgreSQL database
+- a public storage bucket named `item-images`
+
+Set these environment variables on Render:
 
 - `SECRET_KEY`
-- `DATABASE_URL`
-- `UPLOAD_FOLDER=/data/uploads`
+- `DATABASE_URL` from Supabase
+- `STORAGE_BACKEND=supabase`
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `SUPABASE_BUCKET=item-images`
 - `FLASK_ENV=production`
 - `ADMIN_EMAIL`
 - `ADMIN_PASSWORD`
 - `ADMIN_NAME`
-- `MATCH_THRESHOLD` if you want to tune matching behavior
+- `MATCH_THRESHOLD`
+- `ITEMS_PER_PAGE`
 
-Recommended Railway steps:
+For local development, you can keep the default local upload folder behavior.
 
-1. Create a new Railway project from this Git repository.
-2. Add a Railway Postgres database.
-3. Mount a persistent volume at `/data/uploads`.
-4. Set the environment variables above.
-5. Deploy the service from the repo root.
+### Free-tier tradeoffs
 
-If you prefer a VPS, the same Docker image can run there with your own Postgres instance and a mounted upload directory.
+- Render free services spin down when idle, so the first request after inactivity may be slower.
+- Supabase free projects have storage and database limits, so keep an eye on usage.
+- If you later want a no-hassle production setup, the app can also run on a VPS with Docker.
 
 ## Database Configuration
 

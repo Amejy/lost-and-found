@@ -14,6 +14,10 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     MAX_CONTENT_LENGTH = 10 * 1024 * 1024
     UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER", str(BASE_DIR / "uploads"))
+    STORAGE_BACKEND = os.getenv("STORAGE_BACKEND", "local")
+    SUPABASE_URL = os.getenv("SUPABASE_URL", "")
+    SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
+    SUPABASE_BUCKET = os.getenv("SUPABASE_BUCKET", "item-images")
     ALLOWED_IMAGE_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
     ITEMS_PER_PAGE = int(os.getenv("ITEMS_PER_PAGE", "9"))
     SESSION_COOKIE_HTTPONLY = True
