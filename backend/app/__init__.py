@@ -38,6 +38,33 @@ def initialize_database(app):
         db.create_all()
 
 
+def initialize_admin_account(app):
+    admin_email = os.getenv("ADMIN_EMAIL", "admin@lostfound.local").lower().strip()
+    admin_password = os.getenv("ADMIN_PASSWORD", "Admin12345!")
+    admin_name = os.getenv("ADMIN_NAME", "System Admin").strip() or "System Admin"
+    if not admin_email or not admin_password:
+        return
+
+    with app.app_context():
+        existing_admin = User.query.filter_by(email=admin_email).first()
+        if existing_admin:
+            changed = False
+            if existing_admin.role != UserRole.ADMIN:
+                existing_admin.role = UserRole.ADMIN
+                changed = True
+            if not existing_admin.full_name.strip():
+                existing_admin.full_name = admin_name
+                changed = True
+            if changed:
+                db.session.commit()
+            return
+
+        admin_user = User(full_name=admin_name, email=admin_email, role=UserRole.ADMIN)
+        admin_user.set_password(admin_password)
+        db.session.add(admin_user)
+        db.session.commit()
+
+
 def create_app(config_name=None, test_config=None):
     app = Flask(
         __name__,
@@ -55,6 +82,7 @@ def create_app(config_name=None, test_config=None):
     csrf.init_app(app)
     if not app.config.get("TESTING"):
         initialize_database(app)
+        initialize_admin_account(app)
 
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp)

@@ -114,6 +114,8 @@ Set these environment variables on Render:
 
 For local development, you can keep the default local upload folder behavior.
 
+The admin account is created automatically on startup from `ADMIN_EMAIL`, `ADMIN_PASSWORD`, and `ADMIN_NAME`, so you do not need shell access on Render.
+
 ### Free-tier tradeoffs
 
 - Render free services spin down when idle, so the first request after inactivity may be slower.
@@ -138,7 +140,9 @@ Initialize the schema with `flask --app run.py init-db`. A PostgreSQL schema is 
 
 ## Admin Bootstrap
 
-Create an initial admin user with the included CLI command:
+The admin user is created automatically on startup from the environment variables above.
+
+If you need to create or repair the account locally, you can still use the included CLI command:
 
 ```bash
 export FLASK_APP=run.py
