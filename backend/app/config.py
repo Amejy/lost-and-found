@@ -5,11 +5,25 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 
+def _normalize_database_url(url):
+    if not url:
+        return url
+    if url.startswith("postgresql+psycopg://") or url.startswith("postgresql+psycopg3://"):
+        return url
+    if url.startswith("postgres://"):
+        return url.replace("postgres://", "postgresql+psycopg://", 1)
+    if url.startswith("postgresql://"):
+        return url.replace("postgresql://", "postgresql+psycopg://", 1)
+    return url
+
+
 class Config:
     SECRET_KEY = os.getenv("SECRET_KEY", "change-me-in-production")
-    SQLALCHEMY_DATABASE_URI = os.getenv(
-        "DATABASE_URL",
+    SQLALCHEMY_DATABASE_URI = _normalize_database_url(
+        os.getenv(
+            "DATABASE_URL",
         f"sqlite:///{BASE_DIR / 'database' / 'lost_found.db'}",
+        )
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     MAX_CONTENT_LENGTH = 10 * 1024 * 1024
