@@ -33,6 +33,11 @@ def register_cli_commands(app):
         print(f"Admin user created: {admin_email}")
 
 
+def initialize_database(app):
+    with app.app_context():
+        db.create_all()
+
+
 def create_app(config_name=None, test_config=None):
     app = Flask(
         __name__,
@@ -48,6 +53,8 @@ def create_app(config_name=None, test_config=None):
     db.init_app(app)
     login_manager.init_app(app)
     csrf.init_app(app)
+    if not app.config.get("TESTING"):
+        initialize_database(app)
 
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp)
