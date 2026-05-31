@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}Sign In | Lost & Found{% endblock %}
+{% block content %}
+<section class="auth-shell">
+  <div class="auth-showcase">
+    <span class="eyebrow">Welcome back</span>
+    <h1>Run the full recovery workflow from one polished dashboard.</h1>
+    <p>Sign in to track reports, verify claims, switch into dark mode, and keep the entire lost-and-found pipeline organized.</p>
+    <div class="auth-feature-list">
+      <span><i data-lucide="layout-dashboard"></i>Modern dashboard shell</span>
+      <span><i data-lucide="sparkles"></i>Smart match suggestions</span>
+      <span><i data-lucide="shield-check"></i>Secure admin controls</span>
+    </div>
+  </div>
+
+  <div class="saas-card auth-card">
+    <div class="section-head">
+      <div>
+        <span class="section-kicker">Sign in</span>
+        <h2>Access your workspace</h2>
+      </div>
+    </div>
+    <form method="post" class="form-grid-form" data-loading-form="true">
+      {{ form.hidden_tag() }}
+      <label class="field">
+        <span>{{ form.email.label.text }}</span>
+        {{ form.email(class="form-control", placeholder="admin@lostfound.local") }}
+      </label>
+      <label class="field">
+        <span>{{ form.password.label.text }}</span>
+        {{ form.password(class="form-control", placeholder="Enter your password") }}
+      </label>
+      <div class="form-actions">
+        {{ form.submit(class="btn btn-primary w-100") }}
+      </div>
+    </form>
+    <p class="auth-switch">Need an account? <a href="{{ url_for('auth.register') }}">Create one</a>.</p>
+  </div>
+</section>
+{% endblock %}

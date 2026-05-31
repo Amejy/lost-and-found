@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}403 | Lost & Found{% endblock %}
+{% block content %}
+<section class="center-card-shell">
+  <div class="saas-card auth-card text-center">
+    <span class="eyebrow">403</span>
+    <h1>Access denied</h1>
+    <p>You do not have permission to access this workspace or action.</p>
+    <a class="btn btn-primary" href="{{ url_for('main.index') }}">Return home</a>
+  </div>
+</section>
+{% endblock %}

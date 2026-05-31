@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block title %}Notifications | Lost & Found{% endblock %}
+{% block content %}
+{% set unread = namespace(count=0) %}
+{% for notification in notifications %}
+  {% if not notification.is_read %}
+    {% set unread.count = unread.count + 1 %}
+  {% endif %}
+{% endfor %}
+
+<section class="page-header">
+  <div>
+    <span class="eyebrow">Notifications</span>
+    <h1>Stay on top of workflow updates</h1>
+    <p class="page-subtitle">Match alerts, claim decisions, and other system messages appear here in a clean, readable feed.</p>
+  </div>
+  <div class="page-actions">
+    <div class="metric-inline">
+      <span>Unread</span>
+      <strong>{{ unread.count }}</strong>
+    </div>
+  </div>
+</section>
+
+<section class="content-stack">
+  {% for notification in notifications %}
+    <article class="saas-card notification-entry {% if not notification.is_read %}is-unread{% endif %}">
+      <div class="notification-icon">
+        <i data-lucide="{% if notification.type.value == 'match' %}sparkles{% elif notification.type.value == 'claim' %}clipboard-check{% else %}bell{% endif %}"></i>
+      </div>
+      <div class="notification-copy">
+        <div class="notification-meta">
+          <div class="chip-row">
+            <span class="category-chip">{{ notification.type.value|title }}</span>
+            {% if not notification.is_read %}
+              <span class="dot-badge">Unread</span>
+            {% endif %}
+          </div>
+          <span>{{ notification.created_at.strftime('%b %d, %Y %H:%M') }}</span>
+        </div>
+        <h3>{{ notification.title }}</h3>
+        <p>{{ notification.message }}</p>
+      </div>
+      <div class="notification-actions">
+        {% if notification.related_url %}
+          <a class="btn btn-secondary btn-sm" href="{{ notification.related_url }}">Open</a>
+        {% endif %}
+        {% if not notification.is_read %}
+          <form method="post" action="{{ url_for('main.mark_notification_read', notification_id=notification.id) }}" data-loading-form="true">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn-ghost btn-sm" type="submit">Mark read</button>
+          </form>
+        {% endif %}
+      </div>
+    </article>
+  {% else %}
+    {% set icon = 'bell-off' %}
+    {% set title = 'No notifications yet' %}
+    {% set message = 'You will see match alerts and claim decisions here as your workflow becomes active.' %}
+    {% include 'partials/_empty_state.html' %}
+  {% endfor %}
+</section>
+{% endblock %}

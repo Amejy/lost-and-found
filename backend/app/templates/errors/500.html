@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}500 | Lost & Found{% endblock %}
+{% block content %}
+<section class="center-card-shell">
+  <div class="saas-card auth-card text-center">
+    <span class="eyebrow">500</span>
+    <h1>Unexpected server error</h1>
+    <p>Something went wrong while loading this workspace. Please try again in a moment.</p>
+    <a class="btn btn-primary" href="{{ url_for('main.index') }}">Return home</a>
+  </div>
+</section>
+{% endblock %}

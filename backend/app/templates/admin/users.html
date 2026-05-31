@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block title %}Manage Users | Lost & Found{% endblock %}
+{% block content %}
+<section class="page-header">
+  <div>
+    <span class="eyebrow">Admin</span>
+    <h1>User access management</h1>
+    <p class="page-subtitle">Promote operators to admin access or return them to user scope with a safer confirmation flow.</p>
+  </div>
+</section>
+
+<section class="saas-card">
+  {% if users %}
+    <div class="table-responsive">
+      <table class="table data-table align-middle">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Joined</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for user in users %}
+            <tr>
+              <td>
+                <div class="table-title">
+                  <strong>{{ user.full_name }}</strong>
+                  <span>User ID {{ user.id }}</span>
+                </div>
+              </td>
+              <td>{{ user.email }}</td>
+              <td><span class="role-pill">{{ user.role.value|title }}</span></td>
+              <td>{{ user.created_at.strftime('%b %d, %Y') }}</td>
+              <td>
+                {% set self_admin = user.id == current_user.id and user.role.value == 'admin' %}
+                <form
+                  method="post"
+                  action="{{ url_for('admin.toggle_role', user_id=user.id) }}"
+                  data-confirm-title="Change role?"
+                  data-confirm-message="This will update the permissions for {{ user.full_name }}."
+                  data-loading-form="true"
+                >
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button class="btn btn-ghost btn-sm" type="submit" {% if self_admin %}disabled title="Use another admin account to change your own role."{% endif %}>
+                    Make {{ 'User' if user.role.value == 'admin' else 'Admin' }}
+                  </button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    {% set icon = 'users' %}
+    {% set title = 'No users found' %}
+    {% set message = 'Accounts will appear here as soon as new users register.' %}
+    {% include 'partials/_empty_state.html' %}
+  {% endif %}
+</section>
+{% endblock %}

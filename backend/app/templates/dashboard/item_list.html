@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% block title %}{{ item_kind|title }} Items | Lost & Found{% endblock %}
+{% block content %}
+<section class="page-header">
+  <div>
+    <span class="eyebrow">{{ item_kind|title }} items</span>
+    <h1>{{ item_kind|title }} item workspace</h1>
+    <p class="page-subtitle">Browse, filter, and inspect every {{ item_kind }} item report with a cleaner, touch-friendly dashboard view.</p>
+  </div>
+  <div class="page-actions">
+    <a class="btn btn-primary" href="{% if item_kind == 'lost' %}{{ url_for('items.report_lost_item') }}{% else %}{{ url_for('items.report_found_item') }}{% endif %}">
+      {% if item_kind == 'lost' %}Report lost item{% else %}Report found item{% endif %}
+    </a>
+  </div>
+</section>
+
+<section class="metric-grid">
+  <div class="metric-card">
+    <div class="metric-icon"><i data-lucide="{% if item_kind == 'lost' %}briefcase{% else %}package{% endif %}"></i></div>
+    <div><span>Total records</span><strong data-counter="{{ stats.total }}">{{ stats.total }}</strong></div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-icon"><i data-lucide="folder-open"></i></div>
+    <div><span>Open</span><strong data-counter="{{ stats.open }}">{{ stats.open }}</strong></div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-icon"><i data-lucide="sparkles"></i></div>
+    <div><span>Matched</span><strong data-counter="{{ stats.matched }}">{{ stats.matched }}</strong></div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-icon"><i data-lucide="badge-check"></i></div>
+    <div><span>Resolved</span><strong data-counter="{{ stats.resolved }}">{{ stats.resolved }}</strong></div>
+  </div>
+</section>
+
+<section class="saas-card filter-card">
+  <div class="section-head">
+    <div>
+      <span class="section-kicker">Filter records</span>
+      <h2>Refine the {{ item_kind }} item queue</h2>
+    </div>
+  </div>
+  <form method="get" class="filter-grid">
+    <label class="field">
+      <span>Keyword</span>
+      <input type="text" class="form-control" name="q" value="{{ current_filters.q }}" placeholder="Title or description">
+    </label>
+    <label class="field">
+      <span>Category</span>
+      <select class="form-select" name="category">
+        <option value="">All categories</option>
+        {% for category in ['Electronics', 'Documents', 'Bags', 'Clothing', 'Accessories', 'Keys', 'Pets', 'Other'] %}
+          <option value="{{ category }}" {% if current_filters.category == category %}selected{% endif %}>{{ category }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label class="field">
+      <span>Location</span>
+      <input type="text" class="form-control" name="location" value="{{ current_filters.location }}" placeholder="Gate, lobby, library">
+    </label>
+    <label class="field">
+      <span>From</span>
+      <input type="date" class="form-control" name="date_from" value="{{ current_filters.date_from }}">
+    </label>
+    <label class="field">
+      <span>To</span>
+      <input type="date" class="form-control" name="date_to" value="{{ current_filters.date_to }}">
+    </label>
+    <div class="filter-actions">
+      <button class="btn btn-primary" type="submit">Apply filters</button>
+      <a class="btn btn-ghost" href="{% if item_kind == 'lost' %}{{ url_for('items.list_lost_items') }}{% else %}{{ url_for('items.list_found_items') }}{% endif %}">Reset</a>
+    </div>
+  </form>
+</section>
+
+<section class="item-grid">
+  {% for item in items.items %}
+    {% include 'partials/_item_card.html' %}
+  {% else %}
+    {% set icon = 'inbox' %}
+    {% set title = 'No ' ~ item_kind ~ ' items match your filters' %}
+    {% set message = 'Try widening your search, resetting the filters, or creating a new report to start the queue.' %}
+    {% set action_href = url_for('items.report_lost_item') if item_kind == 'lost' else url_for('items.report_found_item') %}
+    {% set action_label = 'Create report' %}
+    {% include 'partials/_empty_state.html' %}
+  {% endfor %}
+</section>
+
+{% set pagination = items %}
+{% include 'partials/_pagination.html' %}
+{% endblock %}

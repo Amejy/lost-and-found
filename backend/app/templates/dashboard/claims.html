@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% block title %}Claims | Lost & Found{% endblock %}
+{% block content %}
+{% set ns = namespace(pending=0, approved=0, rejected=0) %}
+{% for claim in claims %}
+  {% if claim.status.value == 'pending' %}
+    {% set ns.pending = ns.pending + 1 %}
+  {% elif claim.status.value == 'approved' %}
+    {% set ns.approved = ns.approved + 1 %}
+  {% elif claim.status.value == 'rejected' %}
+    {% set ns.rejected = ns.rejected + 1 %}
+  {% endif %}
+{% endfor %}
+
+<section class="page-header">
+  <div>
+    <span class="eyebrow">Claims</span>
+    <h1>Track ownership claim progress</h1>
+    <p class="page-subtitle">See which claims are waiting for review, which were approved, and what feedback came back from admins.</p>
+  </div>
+</section>
+
+<section class="metric-grid">
+  <div class="metric-card">
+    <div class="metric-icon"><i data-lucide="clipboard-list"></i></div>
+    <div><span>Total claims</span><strong data-counter="{{ claims|length }}">{{ claims|length }}</strong></div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-icon"><i data-lucide="clock-3"></i></div>
+    <div><span>Awaiting verification</span><strong data-counter="{{ ns.pending }}">{{ ns.pending }}</strong></div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-icon"><i data-lucide="badge-check"></i></div>
+    <div><span>Verified</span><strong data-counter="{{ ns.approved }}">{{ ns.approved }}</strong></div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-icon"><i data-lucide="x-circle"></i></div>
+    <div><span>Rejected</span><strong data-counter="{{ ns.rejected }}">{{ ns.rejected }}</strong></div>
+  </div>
+</section>
+
+<section class="saas-card">
+  <div class="section-head">
+    <div>
+      <span class="section-kicker">Claims table</span>
+      <h2>Your submitted claims</h2>
+    </div>
+  </div>
+  {% if claims %}
+    <div class="table-responsive">
+      <table class="table data-table align-middle">
+        <thead>
+          <tr>
+            <th>Found item</th>
+            <th>Status</th>
+            <th>Submitted</th>
+            <th>Admin notes</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for claim in claims %}
+            <tr>
+              <td>
+                <div class="table-title">
+                  <strong>{{ claim.found_item.title }}</strong>
+                  <span>{{ claim.lost_item.title if claim.lost_item else 'Standalone claim' }}</span>
+                </div>
+              </td>
+              <td>
+                {% set status = claim.status %}
+                {% include 'partials/_status_badge.html' %}
+              </td>
+              <td>{{ claim.created_at.strftime('%b %d, %Y %H:%M') }}</td>
+              <td>{{ claim.admin_notes or 'Awaiting verification' }}</td>
+              <td>
+                <a class="btn btn-ghost btn-sm" href="{{ url_for('items.view_found_item', item_id=claim.found_item.id) }}">Open item</a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    {% set icon = 'clipboard-list' %}
+    {% set title = 'No claims submitted yet' %}
+    {% set message = 'When you spot your item in the found queue, submit a claim and it will show up here with review updates.' %}
+    {% set action_href = url_for('items.list_found_items') %}
+    {% set action_label = 'Browse found items' %}
+    {% include 'partials/_empty_state.html' %}
+  {% endif %}
+</section>
+{% endblock %}

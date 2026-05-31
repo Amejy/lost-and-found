@@ -1,0 +1,323 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard | Lost & Found{% endblock %}
+{% block content %}
+<section class="hero-panel">
+  <div class="hero-copy">
+    <span class="eyebrow">Dashboard</span>
+    <h1>Operate your recovery workflow like a modern SaaS team.</h1>
+    <p>Track submitted reports, scan intelligent matches, and move claim reviews forward with a calmer, faster interface.</p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="{{ url_for('items.report_lost_item') }}">Report lost item</a>
+      <a class="btn btn-secondary" href="{{ url_for('items.report_found_item') }}">Report found item</a>
+    </div>
+  </div>
+  <div class="hero-aside">
+    <div class="saas-card spotlight-card">
+      <div class="spotlight-copy">
+        <span class="spotlight-label">Live match queue</span>
+        <strong>{{ suggested_matches|length }}</strong>
+        <p>High-confidence suggestions are ready for follow-up and claim verification.</p>
+      </div>
+      <a class="btn btn-ghost btn-sm" href="{{ url_for('items.list_found_items') }}">Review found items</a>
+    </div>
+  </div>
+</section>
+
+<section class="metric-grid">
+  <div class="metric-card">
+    <div class="metric-icon"><i data-lucide="briefcase"></i></div>
+    <div>
+      <span>My lost reports</span>
+      <strong data-counter="{{ stats.my_lost_reports }}">{{ stats.my_lost_reports }}</strong>
+    </div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-icon"><i data-lucide="package"></i></div>
+    <div>
+      <span>My found reports</span>
+      <strong data-counter="{{ stats.my_found_reports }}">{{ stats.my_found_reports }}</strong>
+    </div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-icon"><i data-lucide="clipboard-check"></i></div>
+    <div>
+      <span>My claims</span>
+      <strong data-counter="{{ stats.my_claims }}">{{ stats.my_claims }}</strong>
+    </div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-icon"><i data-lucide="bell-ring"></i></div>
+    <div>
+      <span>Notifications</span>
+      <strong data-counter="{{ stats.notifications }}">{{ stats.notifications }}</strong>
+    </div>
+  </div>
+</section>
+
+<section class="content-grid">
+  <div class="content-stack">
+    <div class="saas-card analytics-card deferred-surface">
+      <div class="section-head">
+        <div>
+          <span class="section-kicker">Activity intelligence</span>
+          <h2>Last 7 days of workflow movement</h2>
+        </div>
+      </div>
+      <div class="sparkline-grid">
+        <div class="sparkline-widget">
+          <div class="sparkline-header">
+            <div>
+              <span>Lost reports</span>
+              <strong data-counter="{{ activity.lost['total'] }}">{{ activity.lost['total'] }}</strong>
+            </div>
+            <span class="sparkline-tone tone-primary">Live</span>
+          </div>
+          <div
+            class="sparkline-canvas"
+            data-sparkline="{{ activity.lost['values']|join(',') }}"
+            data-sparkline-color="primary"
+            aria-label="Lost item activity chart"
+          ></div>
+          <p class="sparkline-caption">{{ activity.lost['labels'][0] }} to {{ activity.lost['labels'][-1] }}</p>
+        </div>
+        <div class="sparkline-widget">
+          <div class="sparkline-header">
+            <div>
+              <span>Found reports</span>
+              <strong data-counter="{{ activity.found['total'] }}">{{ activity.found['total'] }}</strong>
+            </div>
+            <span class="sparkline-tone tone-accent">Tracked</span>
+          </div>
+          <div
+            class="sparkline-canvas"
+            data-sparkline="{{ activity.found['values']|join(',') }}"
+            data-sparkline-color="accent"
+            aria-label="Found item activity chart"
+          ></div>
+          <p class="sparkline-caption">{{ activity.found['labels'][0] }} to {{ activity.found['labels'][-1] }}</p>
+        </div>
+        <div class="sparkline-widget">
+          <div class="sparkline-header">
+            <div>
+              <span>Claims filed</span>
+              <strong data-counter="{{ activity.claims['total'] }}">{{ activity.claims['total'] }}</strong>
+            </div>
+            <span class="sparkline-tone tone-warning">Review</span>
+          </div>
+          <div
+            class="sparkline-canvas"
+            data-sparkline="{{ activity.claims['values']|join(',') }}"
+            data-sparkline-color="warning"
+            aria-label="Claim activity chart"
+          ></div>
+          <p class="sparkline-caption">{{ activity.claims['labels'][0] }} to {{ activity.claims['labels'][-1] }}</p>
+        </div>
+      </div>
+      <div class="progress-panel">
+        <div class="progress-copy">
+          <span>Claim approval rate</span>
+          <strong>{{ workflow_health.resolution_rate }}%</strong>
+        </div>
+        <div class="progress-track" aria-hidden="true">
+          <div class="progress-bar-fill" style="width: {{ workflow_health.resolution_rate }}%"></div>
+        </div>
+        <div class="progress-meta">
+          <span>Active reports: {{ workflow_health.active_reports }}</span>
+          <span>Open matches: {{ workflow_health.open_matches }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="saas-card filter-card">
+      <div class="section-head">
+        <div>
+          <span class="section-kicker">Search & filter</span>
+          <h2>Refine the current workspace</h2>
+        </div>
+      </div>
+      <form method="get" class="filter-grid">
+        <label class="field">
+          <span>Keyword</span>
+          <input type="text" class="form-control" name="q" value="{{ current_filters.q }}" placeholder="Search title or description">
+        </label>
+        <label class="field">
+          <span>Category</span>
+          <select class="form-select" name="category">
+            <option value="">All categories</option>
+            {% for category in ['Electronics', 'Documents', 'Bags', 'Clothing', 'Accessories', 'Keys', 'Pets', 'Other'] %}
+              <option value="{{ category }}" {% if current_filters.category == category %}selected{% endif %}>{{ category }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="field">
+          <span>Location</span>
+          <input type="text" class="form-control" name="location" value="{{ current_filters.location }}" placeholder="Library, lobby, terminal">
+        </label>
+        <label class="field">
+          <span>From</span>
+          <input type="date" class="form-control" name="date_from" value="{{ current_filters.date_from }}">
+        </label>
+        <label class="field">
+          <span>To</span>
+          <input type="date" class="form-control" name="date_to" value="{{ current_filters.date_to }}">
+        </label>
+        <label class="field">
+          <span>Scope</span>
+          <select class="form-select" name="kind">
+            <option value="all" {% if item_kind == 'all' %}selected{% endif %}>All items</option>
+            <option value="lost" {% if item_kind == 'lost' %}selected{% endif %}>Lost items</option>
+            <option value="found" {% if item_kind == 'found' %}selected{% endif %}>Found items</option>
+          </select>
+        </label>
+        <div class="filter-actions">
+          <button type="submit" class="btn btn-primary">Apply filters</button>
+          <a class="btn btn-ghost" href="{{ url_for('main.dashboard') }}">Reset</a>
+        </div>
+      </form>
+    </div>
+
+    <div class="saas-card">
+      <div class="section-head">
+        <div>
+          <span class="section-kicker">Suggested matches</span>
+          <h2>Prioritized handoff candidates</h2>
+        </div>
+        <a class="btn btn-ghost btn-sm" href="{{ url_for('items.list_found_items') }}">Open found queue</a>
+      </div>
+      <div class="match-list">
+        {% for match in suggested_matches %}
+          <div class="match-row">
+            <div class="match-score">0{{ (match.score * 100)|int if match.score < 1 else match.score }}</div>
+            <div class="match-copy">
+              <h3>{{ match.lost_item.title }} <span>vs</span> {{ match.found_item.title }}</h3>
+              <p>{{ match.reasons }}</p>
+              <div class="meta-grid">
+                <span><i data-lucide="map-pin"></i>{{ match.lost_item.location }}</span>
+                <span><i data-lucide="route"></i>{{ match.found_item.location }}</span>
+              </div>
+            </div>
+            <a class="btn btn-secondary btn-sm" href="{{ url_for('items.view_lost_item', item_id=match.lost_item.id) }}">Inspect</a>
+          </div>
+        {% else %}
+          {% set icon = 'sparkles' %}
+          {% set title = 'No suggested matches yet' %}
+          {% set message = 'Once similar reports are submitted, they will appear here with confidence cues and next actions.' %}
+          {% include 'partials/_empty_state.html' %}
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="saas-card">
+      <div class="section-head">
+        <div>
+          <span class="section-kicker">Recent lost reports</span>
+          <h2>Newest lost submissions</h2>
+        </div>
+        <a class="btn btn-ghost btn-sm" href="{{ url_for('items.list_lost_items') }}">See all</a>
+      </div>
+      <div class="item-grid compact-grid">
+        {% for item in lost_items.items[:3] %}
+          {% set item_kind = 'lost' %}
+          {% include 'partials/_item_card.html' %}
+        {% else %}
+          {% set icon = 'briefcase' %}
+          {% set title = 'No lost reports yet' %}
+          {% set message = 'Lost item reports will show up here as soon as they are submitted.' %}
+          {% set action_href = url_for('items.report_lost_item') %}
+          {% set action_label = 'Report lost item' %}
+          {% include 'partials/_empty_state.html' %}
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div class="content-stack">
+    <div class="saas-card">
+      <div class="section-head">
+        <div>
+          <span class="section-kicker">Quick actions</span>
+          <h2>Move fast</h2>
+        </div>
+      </div>
+      <div class="quick-actions">
+        <a class="quick-action-card" href="{{ url_for('items.report_lost_item') }}">
+          <i data-lucide="circle-alert"></i>
+          <div>
+            <strong>Submit a lost report</strong>
+            <span>Create a detailed record with time, location, and photo evidence.</span>
+          </div>
+        </a>
+        <a class="quick-action-card" href="{{ url_for('items.report_found_item') }}">
+          <i data-lucide="plus-circle"></i>
+          <div>
+            <strong>Log a found item</strong>
+            <span>Capture new found property and trigger match suggestions automatically.</span>
+          </div>
+        </a>
+        <a class="quick-action-card" href="{{ url_for('claims.my_claims') }}">
+          <i data-lucide="clipboard-list"></i>
+          <div>
+            <strong>Track claims</strong>
+            <span>Monitor claim outcomes and respond to evidence requests quickly.</span>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <div class="saas-card ops-card deferred-surface">
+      <div class="section-head">
+        <div>
+          <span class="section-kicker">Operational focus</span>
+          <h2>Where to spend time next</h2>
+        </div>
+      </div>
+      <div class="ops-list">
+        <div class="ops-item">
+          <div class="ops-icon"><i data-lucide="sparkles"></i></div>
+          <div>
+            <strong>{{ workflow_health.open_matches }}</strong>
+            <span>Suggested matches are waiting for follow-up.</span>
+          </div>
+        </div>
+        <div class="ops-item">
+          <div class="ops-icon"><i data-lucide="shield-check"></i></div>
+          <div>
+            <strong>{{ workflow_health.resolution_rate }}%</strong>
+            <span>Current claim approval rate across the system.</span>
+          </div>
+        </div>
+        <div class="ops-item">
+          <div class="ops-icon"><i data-lucide="database"></i></div>
+          <div>
+            <strong>{{ workflow_health.active_reports }}</strong>
+            <span>Active records are searchable in the workspace.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="saas-card">
+      <div class="section-head">
+        <div>
+          <span class="section-kicker">Recent found reports</span>
+          <h2>Newest found submissions</h2>
+        </div>
+        <a class="btn btn-ghost btn-sm" href="{{ url_for('items.list_found_items') }}">See all</a>
+      </div>
+      <div class="item-grid compact-grid">
+        {% for item in found_items.items[:3] %}
+          {% set item_kind = 'found' %}
+          {% include 'partials/_item_card.html' %}
+        {% else %}
+          {% set icon = 'package' %}
+          {% set title = 'No found reports yet' %}
+          {% set message = 'Found item reports will appear here as soon as they are logged.' %}
+          {% set action_href = url_for('items.report_found_item') %}
+          {% set action_label = 'Report found item' %}
+          {% include 'partials/_empty_state.html' %}
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

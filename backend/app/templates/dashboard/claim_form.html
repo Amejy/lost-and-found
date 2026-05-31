@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% block title %}Submit Claim | Lost & Found{% endblock %}
+{% block content %}
+<section class="page-header">
+  <div>
+    <span class="eyebrow">Ownership claim</span>
+    <h1>Claim “{{ found_item.title }}”</h1>
+    <p class="page-subtitle">Use the visual picker below to show which report or image matches the item you believe is yours, then send the claim directly to admin.</p>
+  </div>
+</section>
+
+<section class="content-grid form-layout">
+  <div class="saas-card form-card">
+    <div class="section-head">
+      <div>
+        <span class="section-kicker">Claim details</span>
+        <h2>Match this found item to your own report or image</h2>
+      </div>
+    </div>
+    <form method="post" enctype="multipart/form-data" class="form-grid-form" data-loading-form="true">
+      {{ form.hidden_tag() }}
+      <div class="claim-visual-grid">
+        <article class="claim-target-card">
+          <div class="claim-card-media">
+            {% if found_item.image_filename %}
+              <img src="{{ image_url(found_item.image_filename) }}" alt="{{ found_item.title }}">
+            {% else %}
+              <div class="image-placeholder compact">
+                <i data-lucide="image-plus"></i>
+                <span>No image on found item</span>
+              </div>
+            {% endif %}
+          </div>
+          <div class="claim-card-copy">
+            <div class="chip-row">
+              <span class="category-chip">Found item</span>
+              {% set status = found_item.status %}
+              {% include 'partials/_status_badge.html' %}
+            </div>
+            <h3>{{ found_item.title }}</h3>
+            <p>{{ found_item.description }}</p>
+            <div class="meta-grid">
+              <span><i data-lucide="map-pin"></i>{{ found_item.location }}</span>
+              <span><i data-lucide="calendar-days"></i>{{ found_item.date_found.strftime('%b %d, %Y') }}</span>
+            </div>
+          </div>
+        </article>
+
+        <div class="claim-selection-panel">
+          <div class="section-head compact">
+            <div>
+              <span class="section-kicker">Step 1</span>
+              <h2>Choose the item that is yours</h2>
+            </div>
+          </div>
+          <p class="selection-helper">Click the report card that best matches your item. If you never created a lost report, choose “No related report” and upload your own image below.</p>
+          <div class="claim-choice-grid" data-claim-picker>
+            <button
+              type="button"
+              class="claim-choice-card {% if form.lost_item_id.data in [0, None] %}is-selected{% endif %}"
+              data-claim-choice="0"
+              data-claim-select="#lost_item_id"
+            >
+              <div class="claim-choice-media empty">
+                <i data-lucide="file-question"></i>
+              </div>
+              <div class="claim-choice-copy">
+                <strong>No related lost report</strong>
+                <span>I want to claim using my proof text and image only.</span>
+              </div>
+            </button>
+
+            {% for item in user_lost_items %}
+              <button
+                type="button"
+                class="claim-choice-card {% if form.lost_item_id.data == item.id %}is-selected{% endif %}"
+                data-claim-choice="{{ item.id }}"
+                data-claim-select="#lost_item_id"
+              >
+                <div class="claim-choice-media">
+                  {% if item.image_filename %}
+                    <img src="{{ image_url(item.image_filename) }}" alt="{{ item.title }}">
+                  {% else %}
+                    <div class="image-placeholder compact">
+                      <i data-lucide="image-off"></i>
+                      <span>No image</span>
+                    </div>
+                  {% endif %}
+                </div>
+                <div class="claim-choice-copy">
+                  <div class="chip-row">
+                    <span class="category-chip">{{ item.category }}</span>
+                    <span class="tiny-meta">{{ item.date_lost.strftime('%b %d, %Y') }}</span>
+                  </div>
+                  <strong>{{ item.title }}</strong>
+                  <span>{{ item.location }}</span>
+                </div>
+              </button>
+            {% endfor %}
+          </div>
+          {% if not user_lost_items %}
+            <div class="inline-note">
+              <i data-lucide="info"></i>
+              <span>You do not have any lost reports yet. You can still claim this item by uploading your own supporting image and detailed proof.</span>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <label class="field visually-hidden-field">
+        <span>{{ form.lost_item_id.label.text }}</span>
+        {{ form.lost_item_id(class="form-select claim-native-select", id="lost_item_id") }}
+      </label>
+
+      <label class="field">
+        <span>{{ form.supporting_image.label.text }}</span>
+        {{ form.supporting_image(class="form-control") }}
+      </label>
+      <label class="field">
+        <span>{{ form.proof_text.label.text }}</span>
+        {{ form.proof_text(class="form-control", rows="8", placeholder="Explain why this item is yours. Mention unique marks, hidden contents, serial numbers, or details that match the image/report you selected above.") }}
+      </label>
+      <div class="form-actions">
+        {{ form.submit(class="btn btn-primary", value='Submit claim') }}
+        <a class="btn btn-ghost" href="{{ url_for('items.view_found_item', item_id=found_item.id) }}">Cancel</a>
+      </div>
+    </form>
+  </div>
+  <div class="content-stack">
+    <div class="saas-card info-card">
+      <span class="section-kicker">Review checklist</span>
+      <h2>What helps admin approve faster</h2>
+      <ul class="check-list">
+        <li><i data-lucide="check"></i>Select the matching lost-item card if you already reported it.</li>
+        <li><i data-lucide="check"></i>Attach an image that clearly proves the item is yours.</li>
+        <li><i data-lucide="check"></i>Reference exact contents, engravings, serial numbers, or hidden marks.</li>
+      </ul>
+    </div>
+    <div class="saas-card info-card">
+      <span class="section-kicker">Flow summary</span>
+      <h2>What happens after you submit</h2>
+      <p>Your claim goes straight to the admin review queue with your selected report, uploaded image, and proof text bundled together for verification.</p>
+      <div class="meta-grid">
+        <span><i data-lucide="shield-check"></i>Admin verifies ownership</span>
+        <span><i data-lucide="bell-ring"></i>You receive a decision notification</span>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% if pagination.pages > 1 %}
+  <nav class="pagination-shell" aria-label="Pagination">
+    {% if pagination.has_prev %}
+      <a
+        class="pagination-link"
+        href="{{ url_for(request.endpoint, page=pagination.prev_num, q=request.args.get('q'), category=request.args.get('category'), location=request.args.get('location'), date_from=request.args.get('date_from'), date_to=request.args.get('date_to'), kind=request.args.get('kind')) }}"
+      >
+        Previous
+      </a>
+    {% else %}
+      <span class="pagination-link disabled">Previous</span>
+    {% endif %}
+
+    <div class="pagination-pages">
+      {% for page_num in pagination.iter_pages(left_edge=1, left_current=1, right_current=2, right_edge=1) %}
+        {% if page_num %}
+          <a
+            class="pagination-page {% if page_num == pagination.page %}active{% endif %}"
+            href="{{ url_for(request.endpoint, page=page_num, q=request.args.get('q'), category=request.args.get('category'), location=request.args.get('location'), date_from=request.args.get('date_from'), date_to=request.args.get('date_to'), kind=request.args.get('kind')) }}"
+          >
+            {{ page_num }}
+          </a>
+        {% else %}
+          <span class="pagination-ellipsis">...</span>
+        {% endif %}
+      {% endfor %}
+    </div>
+
+    {% if pagination.has_next %}
+      <a
+        class="pagination-link"
+        href="{{ url_for(request.endpoint, page=pagination.next_num, q=request.args.get('q'), category=request.args.get('category'), location=request.args.get('location'), date_from=request.args.get('date_from'), date_to=request.args.get('date_to'), kind=request.args.get('kind')) }}"
+      >
+        Next
+      </a>
+    {% else %}
+      <span class="pagination-link disabled">Next</span>
+    {% endif %}
+  </nav>
+{% endif %}

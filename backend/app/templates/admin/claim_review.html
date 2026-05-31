@@ -1,0 +1,269 @@
+{% extends 'base.html' %}
+{% block title %}Review Claim | Lost & Found{% endblock %}
+{% block content %}
+<section class="page-header">
+  <div>
+    <span class="eyebrow">Admin review</span>
+    <h1>Review claim for “{{ claim.found_item.title }}”</h1>
+    <p class="page-subtitle">Validate the evidence, compare the records, and finalize the decision with a clear admin note.</p>
+  </div>
+</section>
+
+<section class="content-grid">
+  <div class="content-stack">
+    <div class="saas-card detail-card">
+      <div class="section-head">
+        <div>
+          <span class="section-kicker">Submitted evidence</span>
+          <h2>Claim narrative</h2>
+        </div>
+        {% set status = claim.status %}
+        {% include 'partials/_status_badge.html' %}
+      </div>
+      <p class="detail-copy">{{ claim.proof_text }}</p>
+      <div class="detail-stat-grid">
+        <div class="detail-stat">
+          <span>Claimant</span>
+          <strong>{{ claim.claimant.full_name }}</strong>
+        </div>
+        <div class="detail-stat">
+          <span>Found item</span>
+          <strong>{{ claim.found_item.title }}</strong>
+        </div>
+        <div class="detail-stat">
+          <span>Related lost report</span>
+          <strong>{{ claim.lost_item.title if claim.lost_item else 'Not linked' }}</strong>
+        </div>
+        <div class="detail-stat">
+          <span>Submitted</span>
+          <strong>{{ claim.created_at.strftime('%b %d, %Y %H:%M') }}</strong>
+        </div>
+      </div>
+      {% if claim.supporting_image %}
+        <img class="detail-image" src="{{ image_url(claim.supporting_image) }}" alt="Claim proof">
+      {% else %}
+        <div class="image-placeholder">
+          <i data-lucide="image-off"></i>
+          <span>No supporting image was attached to this claim.</span>
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="saas-card">
+      <div class="section-head">
+        <div>
+          <span class="section-kicker">Verification summary</span>
+          <h2>Decision support snapshot</h2>
+        </div>
+      </div>
+      <div class="review-summary-grid">
+        <article class="review-summary-card">
+          <span>Evidence score</span>
+          <strong>{{ review_payload.evidence_ratio }}%</strong>
+          <p>{{ review_payload.recommendation }}</p>
+        </article>
+        <article class="review-summary-card">
+          <span>Pending claims on item</span>
+          <strong>{{ review_payload.queue_snapshot.pending_for_item }}</strong>
+          <p>Approving this claim will close any competing pending submissions.</p>
+        </article>
+        <article class="review-summary-card">
+          <span>Proof package</span>
+          <strong>
+            {% if review_payload.queue_snapshot.has_linked_report and review_payload.queue_snapshot.has_supporting_image %}
+              Linked report + image
+            {% elif review_payload.queue_snapshot.has_linked_report %}
+              Linked report
+            {% elif review_payload.queue_snapshot.has_supporting_image %}
+              Image only
+            {% else %}
+              Narrative only
+            {% endif %}
+          </strong>
+          <p>Review the evidence board below before confirming ownership.</p>
+        </article>
+      </div>
+      <div class="review-checklist">
+        {% for check in review_payload.evidence_checks %}
+          <div class="review-check">
+            <div>
+              <strong>{{ check.label }}</strong>
+              <p>{{ check.detail }}</p>
+            </div>
+            <span class="review-pill review-pill-{{ check.state }}">{{ check.state|replace('_', ' ')|title }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="saas-card">
+      <div class="section-head">
+        <div>
+          <span class="section-kicker">Evidence board</span>
+          <h2>Compare the records side by side</h2>
+        </div>
+      </div>
+      <div class="evidence-board">
+        <article class="evidence-panel">
+          <span class="evidence-label">Found item record</span>
+          <strong>{{ claim.found_item.title }}</strong>
+          <p>{{ claim.found_item.description }}</p>
+          <div class="evidence-meta">
+            <span>{{ claim.found_item.category }}</span>
+            <span>{{ claim.found_item.location }}</span>
+            <span>{{ claim.found_item.date_found.strftime('%b %d, %Y') }}</span>
+          </div>
+          {% if claim.found_item.image_filename %}
+            <img class="evidence-image" src="{{ image_url(claim.found_item.image_filename) }}" alt="{{ claim.found_item.title }}">
+          {% else %}
+            <div class="image-placeholder compact">
+              <i data-lucide="image-off"></i>
+              <span>No found-item image uploaded</span>
+            </div>
+          {% endif %}
+        </article>
+
+        <article class="evidence-panel">
+          <span class="evidence-label">Claim package</span>
+          <strong>{{ claim.claimant.full_name }}</strong>
+          <p>{{ claim.proof_text }}</p>
+          <div class="evidence-meta">
+            <span>{{ claim.claimant.email }}</span>
+            <span>Submitted {{ claim.created_at.strftime('%b %d, %Y %H:%M') }}</span>
+          </div>
+          {% if claim.supporting_image %}
+            <img class="evidence-image" src="{{ image_url(claim.supporting_image) }}" alt="Claim proof">
+          {% else %}
+            <div class="image-placeholder compact">
+              <i data-lucide="image-plus"></i>
+              <span>No extra proof image uploaded</span>
+            </div>
+          {% endif %}
+        </article>
+
+        <article class="evidence-panel">
+          <span class="evidence-label">Linked lost report</span>
+          {% if claim.lost_item %}
+            <strong>{{ claim.lost_item.title }}</strong>
+            <p>{{ claim.lost_item.description }}</p>
+            <div class="evidence-meta">
+              <span>{{ claim.lost_item.category }}</span>
+              <span>{{ claim.lost_item.location }}</span>
+              <span>{{ claim.lost_item.date_lost.strftime('%b %d, %Y') }}</span>
+            </div>
+            {% if claim.lost_item.image_filename %}
+              <img class="evidence-image" src="{{ image_url(claim.lost_item.image_filename) }}" alt="{{ claim.lost_item.title }}">
+            {% else %}
+              <div class="image-placeholder compact">
+                <i data-lucide="image-off"></i>
+                <span>No lost-item image uploaded</span>
+              </div>
+            {% endif %}
+          {% else %}
+            <strong>No linked lost report</strong>
+            <p>This claim was submitted without attaching an earlier lost-item report, so the admin decision depends on the narrative and any proof image.</p>
+          {% endif %}
+        </article>
+      </div>
+    </div>
+
+    {% if review_payload.comparison_rows %}
+      <div class="saas-card">
+        <div class="section-head">
+          <div>
+            <span class="section-kicker">Record comparison</span>
+            <h2>Found vs linked lost report</h2>
+          </div>
+        </div>
+        <div class="comparison-table-wrapper">
+          <table class="table saas-table comparison-table">
+            <thead>
+              <tr>
+                <th>Signal</th>
+                <th>Found item</th>
+                <th>Lost report</th>
+                <th>Assessment</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in review_payload.comparison_rows %}
+                <tr>
+                  <td>
+                    <strong>{{ row.label }}</strong>
+                    <p>{{ row.detail }}</p>
+                  </td>
+                  <td>{{ row.found }}</td>
+                  <td>{{ row.lost }}</td>
+                  <td><span class="review-pill review-pill-{{ row.state }}">{{ row.state|replace('_', ' ')|title }}</span></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="content-stack">
+    <div class="saas-card form-card">
+      <div class="section-head">
+        <div>
+          <span class="section-kicker">Decision panel</span>
+          <h2>Save your review outcome</h2>
+        </div>
+      </div>
+      <form method="post" class="form-grid-form" data-loading-form="true">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="decision" id="decision" value="">
+        {% if claim.reviewed_at %}
+          <div class="inline-alert inline-alert-info">
+            <i data-lucide="history"></i>
+            <span>Previously reviewed by {{ claim.reviewed_by.full_name if claim.reviewed_by else 'an admin' }} on {{ claim.reviewed_at.strftime('%b %d, %Y %H:%M') }}.</span>
+          </div>
+        {% else %}
+          <div class="inline-alert inline-alert-warning">
+            <i data-lucide="shield-check"></i>
+            <span>Document how you confirmed ownership when possible. If left empty, the system will save a default review note automatically.</span>
+          </div>
+        {% endif %}
+        <label class="field">
+          <span>Admin notes</span>
+          <textarea class="form-control" rows="8" name="admin_notes" id="admin_notes" placeholder="Record exactly how ownership was verified or why the claim should be rejected.">{{ claim.admin_notes or '' }}</textarea>
+        </label>
+        <div class="form-actions">
+          {% if claim.status.value == 'approved' and claim.found_item.status.value != 'archived' %}
+            <button
+              class="btn btn-secondary"
+              type="submit"
+              formaction="{{ url_for('admin.archive_claim_records', claim_id=claim.id) }}"
+              formmethod="post"
+              data-confirm-title="Archive collected records?"
+              data-confirm-message="This will mark the handoff as complete and remove the recovered records from active queues."
+            >
+              Mark owner pickup complete
+            </button>
+          {% endif %}
+          <button
+            class="btn btn-success"
+            type="submit"
+            data-decision="approve"
+            data-confirm-title="Approve claim?"
+            data-confirm-message="This will resolve the item, close competing pending claims, and notify the claimant."
+          >
+            Approve claim
+          </button>
+          <button
+            class="btn btn-danger-soft"
+            type="submit"
+            data-decision="reject"
+            data-confirm-title="Reject claim?"
+            data-confirm-message="This will reject the claim and notify the claimant."
+          >
+            Reject claim
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

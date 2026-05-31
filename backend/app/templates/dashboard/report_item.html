@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% block title %}{% if is_edit %}Edit{% else %}Submit{% endif %} {{ item_kind|title }} Item | Lost & Found{% endblock %}
+{% block content %}
+<section class="page-header">
+  <div>
+    <span class="eyebrow">{% if is_edit %}Edit report{% else %}Submit item{% endif %}</span>
+    <h1>{% if is_edit %}Update your {{ item_kind }} item record{% else %}Create a {{ item_kind }} item report{% endif %}</h1>
+    <p class="page-subtitle">Provide strong identifying details so the matching engine and review team can move faster.</p>
+  </div>
+  <div class="segmented-switch">
+    <a class="segment {% if item_kind == 'lost' %}active{% endif %}" href="{{ url_for('items.report_lost_item') }}">Lost item</a>
+    <a class="segment {% if item_kind == 'found' %}active{% endif %}" href="{{ url_for('items.report_found_item') }}">Found item</a>
+  </div>
+</section>
+
+<section class="content-grid form-layout">
+  <div class="saas-card form-card">
+    <div class="section-head">
+      <div>
+        <span class="section-kicker">Record details</span>
+        <h2>{% if is_edit %}Refresh the information{% else %}Tell us what happened{% endif %}</h2>
+      </div>
+    </div>
+    <form method="post" enctype="multipart/form-data" class="form-grid-form" data-loading-form="true">
+      {{ form.hidden_tag() }}
+      <div class="form-grid two-up">
+        <label class="field">
+          <span>{{ form.title.label.text }}</span>
+          {{ form.title(class="form-control", placeholder="Black backpack with laptop sleeve") }}
+        </label>
+        <label class="field">
+          <span>{{ form.category.label.text }}</span>
+          {{ form.category(class="form-select") }}
+        </label>
+      </div>
+
+      <label class="field">
+        <span>{{ form.description.label.text }}</span>
+        {{ form.description(class="form-control", rows="6", placeholder="Describe color, material, serial numbers, contents, labels, scratches, and any unique marks.") }}
+      </label>
+
+      <div class="form-grid three-up">
+        <label class="field">
+          <span>{{ form.location.label.text }}</span>
+          {{ form.location(class="form-control", placeholder="Main gate, library desk, boarding area") }}
+        </label>
+        <label class="field">
+          <span>{% if item_kind == 'lost' %}{{ form.date_lost.label.text }}{% else %}{{ form.date_found.label.text }}{% endif %}</span>
+          {% if item_kind == 'lost' %}
+            {{ form.date_lost(class="form-control") }}
+          {% else %}
+            {{ form.date_found(class="form-control") }}
+          {% endif %}
+        </label>
+        <label class="field">
+          <span>{{ form.image.label.text }}</span>
+          {{ form.image(class="form-control") }}
+        </label>
+      </div>
+
+      {% if is_edit and item and item.image_filename %}
+        <div class="inline-preview">
+          <img src="{{ image_url(item.image_filename) }}" alt="{{ item.title }}">
+          <div>
+            <strong>Current image</strong>
+            <span>Upload a new file only if you want to replace the existing preview.</span>
+          </div>
+        </div>
+      {% endif %}
+
+      <div class="form-actions">
+        {{ form.submit(class="btn btn-primary", value='Update item' if is_edit else 'Submit report') }}
+        <a class="btn btn-ghost" href="{% if item_kind == 'lost' %}{{ url_for('items.list_lost_items') }}{% else %}{{ url_for('items.list_found_items') }}{% endif %}">Cancel</a>
+      </div>
+    </form>
+  </div>
+
+  <div class="content-stack">
+    <div class="saas-card info-card">
+      <span class="section-kicker">Best practices</span>
+      <h2>Make matching easier</h2>
+      <ul class="check-list">
+        <li><i data-lucide="check"></i>Include standout details someone else would not guess easily.</li>
+        <li><i data-lucide="check"></i>Use the most precise location you can remember.</li>
+        <li><i data-lucide="check"></i>Add a photo when available to improve confidence during review.</li>
+      </ul>
+    </div>
+    <div class="saas-card info-card">
+      <span class="section-kicker">Workflow note</span>
+      <h2>What happens next</h2>
+      <p>Your report becomes searchable immediately. The matching service checks category, location, date proximity, and description overlap to surface likely pairs and notify the right people.</p>
+    </div>
+  </div>
+</section>
+{% endblock %}

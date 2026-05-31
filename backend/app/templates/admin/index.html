@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% block title %}Admin Overview | Lost & Found{% endblock %}
+{% block content %}
+<section class="page-header">
+  <div>
+    <span class="eyebrow">Admin</span>
+    <h1>Operational command center</h1>
+    <p class="page-subtitle">Monitor platform health, review pending ownership claims, and keep the item recovery pipeline moving.</p>
+  </div>
+  <div class="page-actions">
+    <a class="btn btn-secondary" href="{{ url_for('admin.claims') }}">Review claims</a>
+    <a class="btn btn-primary" href="{{ url_for('admin.items') }}">Manage items</a>
+  </div>
+</section>
+
+<section class="metric-grid">
+  <div class="metric-card">
+    <div class="metric-icon"><i data-lucide="users"></i></div>
+    <div><span>Users</span><strong data-counter="{{ stats.users }}">{{ stats.users }}</strong></div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-icon"><i data-lucide="briefcase"></i></div>
+    <div><span>Lost items</span><strong data-counter="{{ stats.lost_items }}">{{ stats.lost_items }}</strong></div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-icon"><i data-lucide="package"></i></div>
+    <div><span>Found items</span><strong data-counter="{{ stats.found_items }}">{{ stats.found_items }}</strong></div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-icon"><i data-lucide="clock-3"></i></div>
+    <div><span>Pending claims</span><strong data-counter="{{ stats.pending_claims }}">{{ stats.pending_claims }}</strong></div>
+  </div>
+</section>
+
+<section class="content-grid">
+  <div class="content-stack">
+    <div class="saas-card analytics-card deferred-surface">
+      <div class="section-head">
+        <div>
+          <span class="section-kicker">Moderation analytics</span>
+          <h2>Claim review movement</h2>
+        </div>
+      </div>
+      <div class="sparkline-grid admin-sparkline-grid">
+        <div class="sparkline-widget">
+          <div class="sparkline-header">
+            <div>
+              <span>Claims in last 7 days</span>
+              <strong data-counter="{{ claim_activity['values']|sum }}">{{ claim_activity['values']|sum }}</strong>
+            </div>
+            <span class="sparkline-tone tone-primary">Queue</span>
+          </div>
+          <div
+            class="sparkline-canvas"
+            data-sparkline="{{ claim_activity['values']|join(',') }}"
+            data-sparkline-color="primary"
+            aria-label="Claim submissions chart"
+          ></div>
+          <p class="sparkline-caption">{{ claim_activity['labels'][0] }} to {{ claim_activity['labels'][-1] }}</p>
+        </div>
+        <div class="mix-card">
+          <div class="mix-row">
+            <span>Pending</span>
+            <strong data-counter="{{ claim_mix.pending }}">{{ claim_mix.pending }}</strong>
+          </div>
+          <div class="mix-row">
+            <span>Approved</span>
+            <strong data-counter="{{ claim_mix.approved }}">{{ claim_mix.approved }}</strong>
+          </div>
+          <div class="mix-row">
+            <span>Rejected</span>
+            <strong data-counter="{{ claim_mix.rejected }}">{{ claim_mix.rejected }}</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="saas-card">
+      <div class="section-head">
+        <div>
+          <span class="section-kicker">Claims queue</span>
+          <h2>Pending reviews</h2>
+        </div>
+      </div>
+      {% if pending_claims %}
+        <div class="table-responsive">
+          <table class="table data-table align-middle">
+            <thead>
+              <tr>
+                <th>Claimant</th>
+                <th>Found item</th>
+                <th>Submitted</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for claim in pending_claims %}
+                <tr>
+                  <td>
+                    <div class="table-title">
+                      <strong>{{ claim.claimant.full_name }}</strong>
+                      <span>{{ claim.claimant.email }}</span>
+                    </div>
+                  </td>
+                  <td>{{ claim.found_item.title }}</td>
+                  <td>{{ claim.created_at.strftime('%b %d, %Y %H:%M') }}</td>
+                  <td><a class="btn btn-secondary btn-sm" href="{{ url_for('admin.review_claim', claim_id=claim.id) }}">Review</a></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        {% set icon = 'clipboard-check' %}
+        {% set title = 'No pending claims' %}
+        {% set message = 'The review queue is clear right now. New claims will appear here automatically.' %}
+        {% include 'partials/_empty_state.html' %}
+      {% endif %}
+    </div>
+  </div>
+  <div class="content-stack">
+    <div class="saas-card">
+      <div class="section-head">
+        <div>
+          <span class="section-kicker">Recent users</span>
+          <h2>Newest accounts</h2>
+        </div>
+      </div>
+      {% for user in recent_users %}
+        <div class="list-row">
+          <div class="list-avatar">{{ user.full_name[0]|upper }}</div>
+          <div class="list-copy">
+            <strong>{{ user.full_name }}</strong>
+            <span>{{ user.email }}</span>
+          </div>
+          <span class="role-pill">{{ user.role.value|title }}</span>
+        </div>
+      {% else %}
+        {% set icon = 'users' %}
+        {% set title = 'No users found' %}
+        {% set message = 'User accounts will appear here as new registrations come in.' %}
+        {% include 'partials/_empty_state.html' %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

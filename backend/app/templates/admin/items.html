@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% block title %}Manage Items | Lost & Found{% endblock %}
+{% block content %}
+<section class="page-header">
+  <div>
+    <span class="eyebrow">Admin</span>
+    <h1>Full item catalog</h1>
+    <p class="page-subtitle">Review, inspect, and remove lost or found records from a single premium admin workspace.</p>
+  </div>
+</section>
+
+<section class="content-grid">
+  <div class="content-stack">
+    <div class="saas-card">
+      <div class="section-head">
+        <div>
+          <span class="section-kicker">Lost items</span>
+          <h2>Current lost reports</h2>
+        </div>
+      </div>
+      {% if lost_items %}
+        {% for item in lost_items %}
+          <div class="admin-item-row">
+            <div class="admin-item-copy">
+              <div class="chip-row">
+                <span class="category-chip">{{ item.category }}</span>
+                {% set status = item.status %}
+                {% include 'partials/_status_badge.html' %}
+              </div>
+              <h3>{{ item.title }}</h3>
+              <p>{{ item.description[:140] }}{% if item.description|length > 140 %}...{% endif %}</p>
+            </div>
+            <div class="admin-item-actions">
+              <a class="btn btn-secondary btn-sm" href="{{ url_for('items.view_lost_item', item_id=item.id) }}">Open</a>
+              <form
+                method="post"
+                action="{{ url_for('items.delete_lost_item', item_id=item.id) }}"
+                data-confirm-title="Delete lost record?"
+                data-confirm-message="This lost item report will be permanently removed."
+                data-loading-form="true"
+              >
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn-danger-soft btn-sm" type="submit">Delete</button>
+              </form>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        {% set icon = 'briefcase' %}
+        {% set title = 'No lost items found' %}
+        {% set message = 'Lost reports will appear here once users begin submitting them.' %}
+        {% include 'partials/_empty_state.html' %}
+      {% endif %}
+    </div>
+  </div>
+  <div class="content-stack">
+    <div class="saas-card">
+      <div class="section-head">
+        <div>
+          <span class="section-kicker">Found items</span>
+          <h2>Current found reports</h2>
+        </div>
+      </div>
+      {% if found_items %}
+        {% for item in found_items %}
+          <div class="admin-item-row">
+            <div class="admin-item-copy">
+              <div class="chip-row">
+                <span class="category-chip">{{ item.category }}</span>
+                {% set status = item.status %}
+                {% include 'partials/_status_badge.html' %}
+              </div>
+              <h3>{{ item.title }}</h3>
+              <p>{{ item.description[:140] }}{% if item.description|length > 140 %}...{% endif %}</p>
+            </div>
+            <div class="admin-item-actions">
+              <a class="btn btn-secondary btn-sm" href="{{ url_for('items.view_found_item', item_id=item.id) }}">Open</a>
+              <form
+                method="post"
+                action="{{ url_for('items.delete_found_item', item_id=item.id) }}"
+                data-confirm-title="Delete found record?"
+                data-confirm-message="This found item report will be permanently removed."
+                data-loading-form="true"
+              >
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn-danger-soft btn-sm" type="submit">Delete</button>
+              </form>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        {% set icon = 'package' %}
+        {% set title = 'No found items found' %}
+        {% set message = 'Found item records will appear here as soon as they are logged.' %}
+        {% include 'partials/_empty_state.html' %}
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}

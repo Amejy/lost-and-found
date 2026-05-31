@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+{% block title %}{{ item.title }} | Lost & Found{% endblock %}
+{% block content %}
+<section class="page-header">
+  <div>
+    <span class="eyebrow">{{ item_kind|title }} item</span>
+    <h1>{{ item.title }}</h1>
+    <p class="page-subtitle">Inspect the full record, verify key metadata, and review any suggested counterpart reports.</p>
+  </div>
+  <div class="page-actions">
+    {% set status = item.status %}
+    {% include 'partials/_status_badge.html' %}
+    {% if item_kind == 'found' and current_user.id != item.reporter_id and item.status.value in ['open', 'matched', 'claimed'] %}
+      <a class="btn btn-primary" href="{{ url_for('claims.create_claim', item_id=item.id) }}">Submit claim</a>
+    {% endif %}
+    {% if (current_user.is_admin or current_user.id == item.reporter_id) and item.status.value in ['open', 'matched', 'claimed'] %}
+      <a class="btn btn-secondary" href="{% if item_kind == 'lost' %}{{ url_for('items.edit_lost_item', item_id=item.id) }}{% else %}{{ url_for('items.edit_found_item', item_id=item.id) }}{% endif %}">Edit record</a>
+    {% endif %}
+    {% if current_user.is_admin or current_user.id == item.reporter_id %}
+      <form
+        method="post"
+        action="{% if item_kind == 'lost' %}{{ url_for('items.delete_lost_item', item_id=item.id) }}{% else %}{{ url_for('items.delete_found_item', item_id=item.id) }}{% endif %}"
+        data-confirm-title="Delete record?"
+        data-confirm-message="This record will be permanently removed from the queue."
+      >
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-danger-soft" type="submit">Delete record</button>
+      </form>
+    {% endif %}
+  </div>
+</section>
+
+<section class="content-grid">
+  <div class="content-stack">
+    <div class="saas-card detail-card">
+      <div class="chip-row">
+        <span class="category-chip">{{ item.category }}</span>
+        {% set status = item.status %}
+        {% include 'partials/_status_badge.html' %}
+      </div>
+      <p class="detail-copy">{{ item.description }}</p>
+      <div class="detail-stat-grid">
+        <div class="detail-stat">
+          <span>Location</span>
+          <strong>{{ item.location }}</strong>
+        </div>
+        <div class="detail-stat">
+          <span>Date</span>
+          <strong>{% if item_kind == 'lost' %}{{ item.date_lost.strftime('%b %d, %Y') }}{% else %}{{ item.date_found.strftime('%b %d, %Y') }}{% endif %}</strong>
+        </div>
+        <div class="detail-stat">
+          <span>Reporter</span>
+          <strong>{{ item.reporter.full_name }}</strong>
+        </div>
+        <div class="detail-stat">
+          <span>Created</span>
+          <strong>{{ item.created_at.strftime('%b %d, %Y %H:%M') }}</strong>
+        </div>
+      </div>
+      {% if item.image_filename %}
+        <img class="detail-image" src="{{ image_url(item.image_filename) }}" alt="{{ item.title }}">
+      {% else %}
+        <div class="image-placeholder">
+          <i data-lucide="image-plus"></i>
+          <span>No image attached to this record</span>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="content-stack">
+    <div class="saas-card">
+      <div class="section-head">
+        <div>
+          <span class="section-kicker">Suggested matches</span>
+          <h2>Related records to review</h2>
+        </div>
+      </div>
+      <div class="match-list">
+        {% for match in matches %}
+          <div class="match-row vertical">
+            <div class="match-score">0{{ (match.score * 100)|int if match.score < 1 else match.score }}</div>
+            <div class="match-copy">
+              {% if item_kind == 'lost' %}
+                <h3>{{ match.found_item.title }}</h3>
+                <p>{{ match.found_item.description[:155] }}{% if match.found_item.description|length > 155 %}...{% endif %}</p>
+                <div class="meta-grid">
+                  <span><i data-lucide="map-pin"></i>{{ match.found_item.location }}</span>
+                  <span><i data-lucide="calendar-days"></i>{{ match.found_item.date_found.strftime('%b %d, %Y') }}</span>
+                </div>
+                <a class="btn btn-secondary btn-sm" href="{{ url_for('items.view_found_item', item_id=match.found_item.id) }}">Open found item</a>
+              {% else %}
+                <h3>{{ match.lost_item.title }}</h3>
+                <p>{{ match.lost_item.description[:155] }}{% if match.lost_item.description|length > 155 %}...{% endif %}</p>
+                <div class="meta-grid">
+                  <span><i data-lucide="map-pin"></i>{{ match.lost_item.location }}</span>
+                  <span><i data-lucide="calendar-days"></i>{{ match.lost_item.date_lost.strftime('%b %d, %Y') }}</span>
+                </div>
+                <a class="btn btn-secondary btn-sm" href="{{ url_for('items.view_lost_item', item_id=match.lost_item.id) }}">Open lost item</a>
+              {% endif %}
+            </div>
+          </div>
+        {% else %}
+          {% set icon = 'sparkles' %}
+          {% set title = 'No suggested matches yet' %}
+          {% set message = 'Once similar reports appear in the system, they will show up here with confidence signals.' %}
+          {% include 'partials/_empty_state.html' %}
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</section>
+
+{% if item_kind == 'found' and (current_user.is_admin or current_user.id == item.reporter_id) %}
+  <section class="saas-card">
+    <div class="section-head">
+      <div>
+        <span class="section-kicker">Claims</span>
+        <h2>Submitted ownership claims</h2>
+      </div>
+    </div>
+    {% if claims %}
+      <div class="table-responsive">
+        <table class="table data-table align-middle">
+          <thead>
+            <tr>
+              <th>Claimant</th>
+              <th>Status</th>
+              <th>Submitted</th>
+              <th>Proof summary</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for claim in claims %}
+              <tr>
+                <td>
+                  <div class="table-title">
+                    <strong>{{ claim.claimant.full_name }}</strong>
+                    <span>{{ claim.claimant.email }}</span>
+                  </div>
+                </td>
+                <td>
+                  {% set status = claim.status %}
+                  {% include 'partials/_status_badge.html' %}
+                </td>
+                <td>{{ claim.created_at.strftime('%b %d, %Y %H:%M') }}</td>
+                <td>{{ claim.proof_text[:90] }}{% if claim.proof_text|length > 90 %}...{% endif %}</td>
+                <td>
+                  {% if current_user.is_admin %}
+                    <a class="btn btn-ghost btn-sm" href="{{ url_for('admin.review_claim', claim_id=claim.id) }}">Review</a>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      {% set icon = 'clipboard-list' %}
+      {% set title = 'No claims submitted yet' %}
+      {% set message = 'When someone claims this found item, their details will appear here for review.' %}
+      {% include 'partials/_empty_state.html' %}
+    {% endif %}
+  </section>
+{% endif %}
+{% endblock %}

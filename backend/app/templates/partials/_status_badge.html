@@ -1,0 +1,8 @@
+{% set value = status.value if status.value is defined else status %}
+{% set status_labels = {
+  'pending': 'Awaiting verification',
+  'approved': 'Verified',
+  'rejected': 'Rejected'
+} %}
+{% set badge_label = status_label if status_label is defined else label if label is defined else status_labels.get(value, value|replace('_', ' ')|title) %}
+<span class="status-badge status-{{ value }}">{{ badge_label }}</span>

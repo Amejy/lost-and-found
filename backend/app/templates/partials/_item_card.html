@@ -1,0 +1,39 @@
+<article class="saas-card item-entry">
+  <div class="item-entry-content">
+    <div class="item-entry-head">
+      <div class="chip-row">
+        <span class="category-chip">{{ item.category }}</span>
+        {% set status = item.status %}
+        {% include 'partials/_status_badge.html' %}
+      </div>
+      <h3>
+        <a href="{% if item_kind == 'lost' %}{{ url_for('items.view_lost_item', item_id=item.id) }}{% else %}{{ url_for('items.view_found_item', item_id=item.id) }}{% endif %}">
+          {{ item.title }}
+        </a>
+      </h3>
+      <p>{{ item.description[:155] }}{% if item.description|length > 155 %}...{% endif %}</p>
+    </div>
+
+    <div class="meta-grid">
+      <span><i data-lucide="map-pin"></i>{{ item.location }}</span>
+      <span>
+        <i data-lucide="calendar-days"></i>
+        {% if item_kind == 'lost' %}
+          {{ item.date_lost.strftime('%b %d, %Y') }}
+        {% else %}
+          {{ item.date_found.strftime('%b %d, %Y') }}
+        {% endif %}
+      </span>
+      <span><i data-lucide="user-round"></i>{{ item.reporter.full_name }}</span>
+    </div>
+  </div>
+
+  <div class="item-entry-actions">
+    <a class="btn btn-secondary btn-sm" href="{% if item_kind == 'lost' %}{{ url_for('items.view_lost_item', item_id=item.id) }}{% else %}{{ url_for('items.view_found_item', item_id=item.id) }}{% endif %}">
+      View details
+    </a>
+    {% if current_user.is_authenticated and item_kind == 'found' and current_user.id != item.reporter_id and item.status.value in ['open', 'matched', 'claimed'] %}
+      <a class="btn btn-ghost btn-sm" href="{{ url_for('claims.create_claim', item_id=item.id) }}">Submit claim</a>
+    {% endif %}
+  </div>
+</article>

@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% block title %}Lost & Found Management System{% endblock %}
+{% block content %}
+<section class="landing-hero">
+  <div class="hero-copy">
+    <span class="eyebrow">Lost & Found Management System</span>
+    <h1>Premium operations software for recovering items faster.</h1>
+    <p>Bring lost reports, found property, claim verification, and user notifications into one polished web dashboard with a secure, modern workflow.</p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="{{ url_for('auth.register') }}">Create account</a>
+      <a class="btn btn-secondary" href="{{ url_for('auth.login') }}">Sign in</a>
+    </div>
+    <div class="hero-trust">
+      <span><i data-lucide="shield-check"></i>Role-based access</span>
+      <span><i data-lucide="sparkles"></i>Automated match suggestions</span>
+      <span><i data-lucide="moon-star"></i>Dark mode ready</span>
+    </div>
+  </div>
+  <div class="hero-preview">
+    <div class="preview-window">
+      <div class="preview-toolbar">
+        <span></span><span></span><span></span>
+      </div>
+      <div class="preview-content">
+        <div class="preview-stat">
+          <span>Active reports</span>
+          <strong>{{ stats.lost_items + stats.found_items }}</strong>
+        </div>
+        <div class="preview-stat">
+          <span>Match queue</span>
+          <strong>{{ stats.matches }}</strong>
+        </div>
+        <div class="preview-feed">
+          <div class="preview-feed-item">
+            <span class="dot success"></span>
+            <div><strong>Claim approved</strong><p>Ownership verified for black backpack.</p></div>
+          </div>
+          <div class="preview-feed-item">
+            <span class="dot warning"></span>
+            <div><strong>Potential match found</strong><p>Location and description similarity detected.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="metric-grid landing-metrics">
+  <div class="metric-card">
+    <div class="metric-icon"><i data-lucide="briefcase"></i></div>
+    <div><span>Lost reports</span><strong>{{ stats.lost_items }}</strong></div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-icon"><i data-lucide="package"></i></div>
+    <div><span>Found reports</span><strong>{{ stats.found_items }}</strong></div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-icon"><i data-lucide="clipboard-check"></i></div>
+    <div><span>Claims submitted</span><strong>{{ stats.claims }}</strong></div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-icon"><i data-lucide="sparkles"></i></div>
+    <div><span>Match records</span><strong>{{ stats.matches }}</strong></div>
+  </div>
+</section>
+
+<section class="feature-grid">
+  <div class="saas-card feature-card">
+    <i data-lucide="search-check"></i>
+    <h2>Find likely matches faster</h2>
+    <p>Surface related reports automatically by combining description overlap, category, date, and location proximity.</p>
+  </div>
+  <div class="saas-card feature-card">
+    <i data-lucide="clipboard-list"></i>
+    <h2>Centralize claim review</h2>
+    <p>Admins can inspect evidence, approve valid ownership claims, and keep the decision trail organized.</p>
+  </div>
+  <div class="saas-card feature-card">
+    <i data-lucide="bell-ring"></i>
+    <h2>Notify the right people</h2>
+    <p>Users receive in-app alerts when a possible match appears or when claim status changes.</p>
+  </div>
+</section>
+
+<section class="content-grid">
+  <div class="saas-card">
+    <div class="section-head">
+      <div>
+        <span class="section-kicker">Recent lost reports</span>
+        <h2>What users are actively looking for</h2>
+      </div>
+    </div>
+    <div class="item-grid compact-grid">
+      {% for item in recent_lost %}
+        {% set item_kind = 'lost' %}
+        {% include 'partials/_item_card.html' %}
+      {% else %}
+        {% set icon = 'briefcase' %}
+        {% set title = 'No lost reports yet' %}
+        {% set message = 'Once users start reporting missing items, they will appear here.' %}
+        {% include 'partials/_empty_state.html' %}
+      {% endfor %}
+    </div>
+  </div>
+  <div class="saas-card">
+    <div class="section-head">
+      <div>
+        <span class="section-kicker">Recent found reports</span>
+        <h2>Newly logged found property</h2>
+      </div>
+    </div>
+    <div class="item-grid compact-grid">
+      {% for item in recent_found %}
+        {% set item_kind = 'found' %}
+        {% include 'partials/_item_card.html' %}
+      {% else %}
+        {% set icon = 'package' %}
+        {% set title = 'No found reports yet' %}
+        {% set message = 'When someone records a recovered item, it will appear here.' %}
+        {% include 'partials/_empty_state.html' %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}
