@@ -69,6 +69,10 @@ def create_app(config_name=None, test_config=None):
     def uploaded_file(filename):
         return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
 
+    @app.route("/healthz")
+    def healthz():
+        return {"status": "ok"}, 200
+
     @app.errorhandler(403)
     def forbidden(_error):
         return render_template("errors/403.html"), 403
