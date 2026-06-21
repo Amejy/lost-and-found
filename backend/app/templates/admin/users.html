@@ -19,7 +19,7 @@
             <th>Email</th>
             <th>Role</th>
             <th>Joined</th>
-            <th></th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -36,18 +36,38 @@
               <td>{{ user.created_at.strftime('%b %d, %Y') }}</td>
               <td>
                 {% set self_admin = user.id == current_user.id and user.role.value == 'admin' %}
-                <form
-                  method="post"
-                  action="{{ url_for('admin.toggle_role', user_id=user.id) }}"
-                  data-confirm-title="Change role?"
-                  data-confirm-message="This will update the permissions for {{ user.full_name }}."
-                  data-loading-form="true"
-                >
-                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                  <button class="btn btn-ghost btn-sm" type="submit" {% if self_admin %}disabled title="Use another admin account to change your own role."{% endif %}>
-                    Make {{ 'User' if user.role.value == 'admin' else 'Admin' }}
-                  </button>
-                </form>
+                <div class="user-action-stack">
+                  <form
+                    method="post"
+                    action="{{ url_for('admin.toggle_role', user_id=user.id) }}"
+                    data-confirm-title="Change role?"
+                    data-confirm-message="This will update the permissions for {{ user.full_name }}."
+                    data-loading-form="true"
+                  >
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button class="btn btn-ghost btn-sm" type="submit" {% if self_admin %}disabled title="Use another admin account to change your own role."{% endif %}>
+                      Make {{ 'User' if user.role.value == 'admin' else 'Admin' }}
+                    </button>
+                  </form>
+                  <form
+                    method="post"
+                    action="{{ url_for('admin.reset_password_link', user_id=user.id) }}"
+                    data-loading-form="true"
+                  >
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button class="btn btn-secondary btn-sm" type="submit">Reset password</button>
+                  </form>
+                  <form
+                    method="post"
+                    action="{{ url_for('admin.delete_user', user_id=user.id) }}"
+                    data-confirm-title="Delete user?"
+                    data-confirm-message="This will permanently delete {{ user.full_name }} and all of their related content."
+                    data-loading-form="true"
+                  >
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button class="btn btn-danger-soft btn-sm" type="submit" {% if user.id == current_user.id %}disabled title="You cannot delete your own account while signed in."{% endif %}>Delete</button>
+                  </form>
+                </div>
               </td>
             </tr>
           {% endfor %}

@@ -4,12 +4,12 @@ A production-oriented lost and found platform built with Flask, SQLAlchemy, Boot
 
 ## Features
 
-- User registration, login, logout, password hashing, and role-based access (`user`, `admin`)
+- User registration, login, logout, password hashing, password reset, and role-based access (`user`, `admin`)
 - Lost item and found item reporting with optional image uploads
 - Search and filter by keyword, category, location, and date
 - Automatic match suggestions using description, category, location, and date proximity
 - Ownership claim submission with optional supporting image
-- Admin dashboard for reviewing claims, managing users, and deleting records
+- Admin dashboard for reviewing claims, managing users, deleting records, and generating password reset links
 - Web-based editing flow for existing lost/found records
 - RESTful JSON API for authentication, items, claims, and admin reporting
 - In-app notifications for match alerts and claim decisions
@@ -111,8 +111,14 @@ Set these environment variables on Render:
 - `ADMIN_NAME`
 - `MATCH_THRESHOLD`
 - `ITEMS_PER_PAGE`
+- `SENDGRID_API_KEY`
+- `SENDGRID_FROM_EMAIL`
+- `SUPPORT_EMAIL`
+- `SENDGRID_BASE_URL`
+- `SENDGRID_TIMEOUT`
 
 For local development, you can keep the default local upload folder behavior.
+If SendGrid is not configured, password reset links will still be generated and shown in the browser for testing.
 
 The admin account is created automatically on startup from `ADMIN_EMAIL`, `ADMIN_PASSWORD`, and `ADMIN_NAME`, so you do not need shell access on Render.
 
@@ -162,6 +168,8 @@ Override them with `ADMIN_EMAIL`, `ADMIN_PASSWORD`, and `ADMIN_NAME`.
 
 - `/register`
 - `/login`
+- `/forgot-password`
+- `/reset-password/<token>`
 - `/dashboard`
 - `/lost/report`
 - `/found/report`
@@ -199,6 +207,7 @@ When a score reaches the configured threshold (`MATCH_THRESHOLD`, default `0.55`
 ## Security Notes
 
 - Passwords are hashed with Werkzeug’s secure password hasher
+- Password reset links are generated with time-limited signed tokens
 - Flask-WTF provides CSRF protection for form-based browser flows
 - SQLAlchemy ORM helps prevent SQL injection risks
 - User input is sanitized with `bleach`

@@ -1,7 +1,9 @@
 import tempfile
 import unittest
+import re
 from datetime import date
 from pathlib import Path
+from unittest.mock import patch
 
 from backend.app import create_app
 from backend.app.extensions import db
@@ -513,6 +515,105 @@ class LostFoundUserFlowTestCase(unittest.TestCase):
         with self.app.app_context():
             admin = db.session.get(User, admin_id)
             self.assertEqual(admin.role, UserRole.ADMIN)
+
+    def test_password_reset_request_and_completion_flow(self):
+        self.register_user("Reset Me", "reset@example.com")
+
+        request_response = self.client.post(
+            "/forgot-password",
+            data={"email": "reset@example.com"},
+            follow_redirects=True,
+        )
+        self.assertEqual(request_response.status_code, 200)
+        self.assertIn(b"Reset link for reset@example.com", request_response.data)
+
+        match = re.search(rb"/reset-password/([^\"']+)", request_response.data)
+        self.assertIsNotNone(match)
+        token = match.group(1).decode()
+
+        reset_response = self.client.post(
+            f"/reset-password/{token}",
+            data={
+                "password": "NewStrongPass123!",
+                "confirm_password": "NewStrongPass123!",
+            },
+            follow_redirects=True,
+        )
+        self.assertEqual(reset_response.status_code, 200)
+        self.assertIn(b"Password updated successfully", reset_response.data)
+
+        self.login("reset@example.com", "NewStrongPass123!")
+
+    def test_password_reset_request_sends_email_when_available(self):
+        self.register_user("Email Reset", "email-reset@example.com")
+
+        with patch("backend.app.routes.auth.send_password_reset_email", return_value=True) as mocked_send_email:
+            response = self.client.post(
+                "/forgot-password",
+                data={"email": "email-reset@example.com"},
+                follow_redirects=True,
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"We sent a password reset email", response.data)
+        self.assertNotIn(b"/reset-password/", response.data)
+        self.assertTrue(mocked_send_email.called)
+
+    def test_admin_can_generate_reset_link_and_delete_user(self):
+        self.register_user("Disposable User", "dispose@example.com")
+
+        with self.app.app_context():
+            user = User.query.filter_by(email="dispose@example.com").one()
+            user_id = user.id
+
+        self.login("admin@lostfound.local", "Admin12345!")
+
+        reset_link_response = self.client.post(
+            f"/admin/users/{user_id}/reset-password-link",
+            follow_redirects=True,
+        )
+        self.assertEqual(reset_link_response.status_code, 200)
+        self.assertIn(b"Password reset link for Disposable User", reset_link_response.data)
+        self.assertIn(b"/reset-password/", reset_link_response.data)
+
+        delete_response = self.client.post(
+            f"/admin/users/{user_id}/delete",
+            follow_redirects=True,
+        )
+        self.assertEqual(delete_response.status_code, 200)
+        self.assertIn(b"User deleted", delete_response.data)
+
+        with self.app.app_context():
+            self.assertIsNone(db.session.get(User, user_id))
+
+    def test_admin_can_send_reset_email_when_mail_is_available(self):
+        self.register_user("Mail User", "mail-user@example.com")
+
+        with self.app.app_context():
+            user = User.query.filter_by(email="mail-user@example.com").one()
+            user_id = user.id
+
+        self.login("admin@lostfound.local", "Admin12345!")
+
+        with patch("backend.app.routes.admin.send_password_reset_email", return_value=True) as mocked_send_email:
+            response = self.client.post(
+                f"/admin/users/{user_id}/reset-password-link",
+                follow_redirects=True,
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"Password reset email sent to mail-user@example.com", response.data)
+        self.assertTrue(mocked_send_email.called)
+
+    def test_admin_cannot_delete_self_account(self):
+        with self.app.app_context():
+            admin = User.query.filter_by(email="admin@lostfound.local").one()
+            admin_id = admin.id
+
+        self.login("admin@lostfound.local", "Admin12345!")
+        response = self.client.post(f"/admin/users/{admin_id}/delete", follow_redirects=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"You cannot delete your own account while signed in.", response.data)
 
     def test_reporter_can_delete_found_item_with_linked_claim_without_server_error(self):
         with self.app.app_context():

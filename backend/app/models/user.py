@@ -1,7 +1,9 @@
 from datetime import datetime, timezone
 from enum import Enum
 
+from flask import current_app
 from flask_login import UserMixin
+from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
 from sqlalchemy import Enum as SqlEnum
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -62,6 +64,23 @@ class User(UserMixin, db.Model):
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+
+    def generate_reset_token(self):
+        serializer = URLSafeTimedSerializer(current_app.config["SECRET_KEY"])
+        return serializer.dumps({"user_id": self.id}, salt="password-reset")
+
+    @staticmethod
+    def verify_reset_token(token, max_age=3600):
+        serializer = URLSafeTimedSerializer(current_app.config["SECRET_KEY"])
+        try:
+            payload = serializer.loads(token, salt="password-reset", max_age=max_age)
+        except (BadSignature, SignatureExpired):
+            return None
+
+        user_id = payload.get("user_id")
+        if not user_id:
+            return None
+        return db.session.get(User, user_id)
 
 
 @login_manager.user_loader

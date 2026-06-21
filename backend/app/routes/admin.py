@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, timezone
 
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 from flask_login import current_user
+from sqlalchemy.exc import SQLAlchemyError
 
 from backend.app.decorators import admin_required
 from backend.app.extensions import db
@@ -11,7 +12,9 @@ from backend.app.models.item import FoundItem, ItemStatus, LostItem
 from backend.app.models.notification import NotificationType
 from backend.app.models.user import User, UserRole
 from backend.app.services.claims import apply_claim_review, build_claim_review_payload
+from backend.app.services.mailer import send_password_reset_email
 from backend.app.services.notifications import create_notification
+from backend.app.services.users import delete_user_with_dependencies
 
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
@@ -22,6 +25,10 @@ def get_or_404(model, object_id):
     if instance is None:
         abort(404)
     return instance
+
+
+def reset_password_url(user):
+    return url_for("auth.reset_password", token=user.generate_reset_token(), _external=True)
 
 
 def build_claim_series(claims, days=7):
@@ -186,4 +193,48 @@ def toggle_role(user_id):
     user.role = UserRole.USER if user.role == UserRole.ADMIN else UserRole.ADMIN
     db.session.commit()
     flash("User role updated.", "success")
+    return redirect(url_for("admin.users"))
+
+
+@admin_bp.route("/users/<int:user_id>/reset-password-link", methods=["POST"])
+@admin_required
+def reset_password_link(user_id):
+    user = get_or_404(User, user_id)
+    reset_url = reset_password_url(user)
+    email_sent = send_password_reset_email(user, reset_url)
+    if email_sent:
+        flash(f"Password reset email sent to {user.email}.", "success")
+        return redirect(url_for("admin.users"))
+    flash(
+        f"Password reset link for {user.full_name}: {reset_url}",
+        "success",
+    )
+    return redirect(url_for("admin.users"))
+
+
+@admin_bp.route("/users/<int:user_id>/delete", methods=["POST"])
+@admin_required
+def delete_user(user_id):
+    user = get_or_404(User, user_id)
+    if user.id == current_user.id:
+        flash("You cannot delete your own account while signed in.", "warning")
+        return redirect(url_for("admin.users"))
+    if user.role == UserRole.ADMIN and User.query.filter_by(role=UserRole.ADMIN).count() == 1:
+        flash("You cannot delete the last admin account from the system.", "warning")
+        return redirect(url_for("admin.users"))
+
+    try:
+        deleted_counts = delete_user_with_dependencies(user)
+        db.session.commit()
+    except SQLAlchemyError:
+        db.session.rollback()
+        flash("We could not delete that account right now. Please try again.", "danger")
+        return redirect(url_for("admin.users"))
+
+    flash(
+        "User deleted. "
+        f"Cleaned up {deleted_counts['items']} item(s), {deleted_counts['claims']} claim(s), "
+        f"and {deleted_counts['notifications']} notification(s).",
+        "info",
+    )
     return redirect(url_for("admin.users"))

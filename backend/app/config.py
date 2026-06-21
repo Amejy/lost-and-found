@@ -39,6 +39,11 @@ class Config:
     SESSION_COOKIE_SAMESITE = "Lax"
     WTF_CSRF_TIME_LIMIT = None
     NOTIFICATION_MATCH_THRESHOLD = float(os.getenv("MATCH_THRESHOLD", "0.55"))
+    SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY", "")
+    SENDGRID_FROM_EMAIL = os.getenv("SENDGRID_FROM_EMAIL", "no-reply@lostfound.local")
+    SUPPORT_EMAIL = os.getenv("SUPPORT_EMAIL", SENDGRID_FROM_EMAIL)
+    SENDGRID_BASE_URL = os.getenv("SENDGRID_BASE_URL", "https://api.sendgrid.com/v3")
+    SENDGRID_TIMEOUT = int(os.getenv("SENDGRID_TIMEOUT", "10"))
 
 
 class DevelopmentConfig(Config):
