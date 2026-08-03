@@ -1,11 +1,11 @@
 {% extends 'base.html' %}
-{% block title %}Manage Items | Lost & Found{% endblock %}
+{% block title %}Manage Items | FoundIT @ IBBU{% endblock %}
 {% block content %}
 <section class="page-header">
   <div>
     <span class="eyebrow">Admin</span>
     <h1>Full item catalog</h1>
-    <p class="page-subtitle">Review, inspect, and remove lost or found records from a single premium admin workspace.</p>
+    <p class="page-subtitle">Review, inspect, and delete records.</p>
   </div>
 </section>
 
@@ -31,7 +31,7 @@
               <p>{{ item.description[:140] }}{% if item.description|length > 140 %}...{% endif %}</p>
             </div>
             <div class="admin-item-actions">
-              <a class="btn btn-secondary btn-sm" href="{{ url_for('items.view_lost_item', item_id=item.id) }}">Open</a>
+              <a class="btn btn-secondary btn-sm" href="{{ url_for('items.view_lost_item', item_id=item.id) }}">View</a>
               <form
                 method="post"
                 action="{{ url_for('items.delete_lost_item', item_id=item.id) }}"
@@ -48,7 +48,7 @@
       {% else %}
         {% set icon = 'briefcase' %}
         {% set title = 'No lost items found' %}
-        {% set message = 'Lost reports will appear here once users begin submitting them.' %}
+        {% set message = 'Lost reports will appear here.' %}
         {% include 'partials/_empty_state.html' %}
       {% endif %}
     </div>
@@ -74,7 +74,7 @@
               <p>{{ item.description[:140] }}{% if item.description|length > 140 %}...{% endif %}</p>
             </div>
             <div class="admin-item-actions">
-              <a class="btn btn-secondary btn-sm" href="{{ url_for('items.view_found_item', item_id=item.id) }}">Open</a>
+              <a class="btn btn-secondary btn-sm" href="{{ url_for('items.view_found_item', item_id=item.id) }}">View</a>
               <form
                 method="post"
                 action="{{ url_for('items.delete_found_item', item_id=item.id) }}"
@@ -91,7 +91,7 @@
       {% else %}
         {% set icon = 'package' %}
         {% set title = 'No found items found' %}
-        {% set message = 'Found item records will appear here as soon as they are logged.' %}
+        {% set message = 'Found reports will appear here.' %}
         {% include 'partials/_empty_state.html' %}
       {% endif %}
     </div>

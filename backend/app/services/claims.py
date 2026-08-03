@@ -109,10 +109,10 @@ def build_claim_review_payload(claim):
         "evidence_checks": evidence_checks,
         "comparison_rows": comparison_rows,
         "queue_snapshot": {
-            "pending_for_item": Claim.query.filter_by(
+        "pending_for_item": Claim.query.filter_by(
                 found_item_id=claim.found_item_id,
                 status=ClaimStatus.PENDING,
-            ).count(),
+            ).filter(Claim.organization_id == claim.organization_id).count(),
             "has_linked_report": bool(lost_item),
             "has_supporting_image": bool(claim.supporting_image),
         },
@@ -138,6 +138,7 @@ def apply_claim_review(claim, decision, reviewer, notes):
         Claim.found_item_id == claim.found_item_id,
         Claim.id != claim.id,
         Claim.status == ClaimStatus.PENDING,
+        Claim.organization_id == claim.organization_id,
     ).all()
 
     if decision == "approve":

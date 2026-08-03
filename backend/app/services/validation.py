@@ -29,13 +29,34 @@ def serialize_user(user):
         "email": user.email,
         "role": user.role.value,
         "is_active": user.is_active,
+        "theme_preference": getattr(user, "theme_preference", "system"),
+        "email_notifications_enabled": getattr(user, "email_notifications_enabled", True),
+        "claim_notifications_enabled": getattr(user, "claim_notifications_enabled", True),
+        "match_notifications_enabled": getattr(user, "match_notifications_enabled", True),
+        "organization": {
+            "id": user.organization.id,
+            "name": user.organization.name,
+            "slug": user.organization.slug,
+        }
+        if getattr(user, "organization", None)
+        else None,
         "created_at": user.created_at.isoformat(),
+    }
+
+
+def serialize_organization(organization):
+    return {
+        "id": organization.id,
+        "name": organization.name,
+        "slug": organization.slug,
+        "created_at": organization.created_at.isoformat(),
     }
 
 
 def serialize_lost_item(item):
     return {
         "id": item.id,
+        "organization_id": item.organization_id,
         "title": item.title,
         "description": item.description,
         "category": item.category,
@@ -51,6 +72,7 @@ def serialize_lost_item(item):
 def serialize_found_item(item):
     return {
         "id": item.id,
+        "organization_id": item.organization_id,
         "title": item.title,
         "description": item.description,
         "category": item.category,
@@ -66,6 +88,7 @@ def serialize_found_item(item):
 def serialize_claim(claim):
     return {
         "id": claim.id,
+        "organization_id": claim.organization_id,
         "proof_text": claim.proof_text,
         "supporting_image": claim.supporting_image,
         "status": claim.status.value,

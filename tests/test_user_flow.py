@@ -21,7 +21,7 @@ from backend.app.models import (
 )
 
 
-class LostFoundUserFlowTestCase(unittest.TestCase):
+class FoundItUserFlowTestCase(unittest.TestCase):
     def setUp(self):
         self.temp_dir = tempfile.TemporaryDirectory()
         database_path = Path(self.temp_dir.name) / "test.db"

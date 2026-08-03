@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}Workspace Invite | FoundIT @ IBBU{% endblock %}
+{% block content %}
+<section class="auth-shell">
+  <div class="auth-showcase">
+    <span class="eyebrow">Workspace invite</span>
+    <h1>You have been invited to {{ invite.organization.name }}.</h1>
+    <p>This invite is for <strong>{{ invite.email }}</strong> and will grant <strong>{{ invite.role|title }}</strong> access when accepted.</p>
+    <div class="auth-feature-list">
+      <span><i data-lucide="users"></i>Workspace membership</span>
+      <span><i data-lucide="shield-check"></i>Role-based access</span>
+      <span><i data-lucide="kanban-square"></i>Team workspace</span>
+    </div>
+  </div>
+
+  <div class="saas-card auth-card">
+    <div class="section-head">
+      <div>
+        <span class="section-kicker">Join workspace</span>
+        <h2>Accept the invite</h2>
+      </div>
+    </div>
+    <div class="api-secret-banner">
+      <span>Workspace</span>
+      <strong>{{ invite.organization.name }}</strong>
+      <p>Expires {{ invite.expires_at.strftime('%b %d, %Y %H:%M') }}.</p>
+    </div>
+    {% if current_user.is_authenticated %}
+      <form method="post" action="{{ url_for('auth.accept_invite', token=token) }}" data-loading-form="true">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-primary w-100" type="submit">Accept invite</button>
+      </form>
+      <p class="auth-switch">Signed in as {{ current_user.email }}.</p>
+    {% else %}
+      <p class="settings-note">Sign in with the invited email address to join this workspace.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="{{ url_for('auth.register', invite=token) }}">Create account</a>
+        <a class="btn btn-secondary" href="{{ url_for('auth.login', next=url_for('auth.accept_invite', token=token)) }}">Sign in</a>
+      </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

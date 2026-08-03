@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% block title %}Integrations | FoundIT @ IBBU{% endblock %}
+{% block content %}
+<section class="page-header">
+  <div>
+    <span class="eyebrow">SaaS</span>
+    <h1>Integrations</h1>
+    <p class="page-subtitle">Connect tools and automations.</p>
+  </div>
+  <div class="page-actions">
+    <a class="btn btn-secondary" href="{{ url_for('auth.settings') }}">Manage API keys</a>
+    <a class="btn btn-primary" href="{{ url_for('main.help_center') }}">Get support</a>
+  </div>
+</section>
+
+<section class="content-grid">
+  <div class="content-stack">
+    <div class="saas-card">
+      <div class="section-head">
+        <div>
+          <span class="section-kicker">Authentication</span>
+          <h2>API access</h2>
+        </div>
+      </div>
+      <div class="integration-code-grid">
+        <div class="code-panel">
+          <span>Authorization header</span>
+          <pre>Authorization: Bearer lfk_...</pre>
+        </div>
+        <div class="code-panel">
+          <span>Alternative header</span>
+          <pre>X-API-Key: lfk_...</pre>
+        </div>
+      </div>
+      <p class="settings-note">Create and revoke keys in Account Settings.</p>
+    </div>
+
+    <div class="saas-card">
+      <div class="section-head">
+        <div>
+          <span class="section-kicker">Base URL</span>
+          <h2>Current workspace endpoint</h2>
+        </div>
+      </div>
+      <div class="api-secret-banner">
+        <span>API base URL</span>
+        <strong>{{ base_url }}/api/v1</strong>
+        <p>Requests are scoped to the current workspace.</p>
+      </div>
+    </div>
+
+    <div class="saas-card">
+      <div class="section-head">
+        <div>
+          <span class="section-kicker">Examples</span>
+          <h2>Quick requests</h2>
+        </div>
+      </div>
+      <div class="integration-code-grid">
+        <div class="code-panel">
+          <span>List lost items</span>
+          <pre>curl -H "Authorization: Bearer YOUR_KEY" {{ base_url }}/api/v1/lost-items</pre>
+        </div>
+        <div class="code-panel">
+          <span>Create a found item</span>
+          <pre>curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer YOUR_KEY" \\
+  -d '{"title":"Phone","description":"Black iPhone","category":"Electronics","location":"Library","date_found":"2026-07-26"}' \\
+  {{ base_url }}/api/v1/found-items</pre>
+        </div>
+        <div class="code-panel">
+          <span>Review a claim</span>
+          <pre>curl -X PATCH -H "Content-Type: application/json" -H "Authorization: Bearer YOUR_KEY" \\
+  -d '{"decision":"approve","admin_notes":"Matches serial number"}' \\
+  {{ base_url }}/api/v1/claims/123/review</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-stack">
+    <div class="saas-card">
+      <div class="section-head">
+        <div>
+          <span class="section-kicker">Use cases</span>
+          <h2>What to connect</h2>
+        </div>
+      </div>
+      <div class="list-group">
+        <div class="list-row">
+          <div class="list-copy">
+            <strong>Admin scripts</strong>
+            <span>Batch review and exports</span>
+          </div>
+        </div>
+        <div class="list-row">
+          <div class="list-copy">
+            <strong>Automation tools</strong>
+            <span>Automation tools</span>
+          </div>
+        </div>
+        <div class="list-row">
+          <div class="list-copy">
+            <strong>Campus systems</strong>
+            <span>Portals, desks, and ticketing systems</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="saas-card">
+      <div class="section-head">
+        <div>
+          <span class="section-kicker">Security</span>
+          <h2>Security basics</h2>
+        </div>
+      </div>
+      <ul class="doc-list">
+        <li>Rotate keys when access changes.</li>
+        <li>Revoke keys you no longer use.</li>
+        <li>Review the audit log after integrations run.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+{% endblock %}

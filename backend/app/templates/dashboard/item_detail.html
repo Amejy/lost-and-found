@@ -1,11 +1,11 @@
 {% extends 'base.html' %}
-{% block title %}{{ item.title }} | Lost & Found{% endblock %}
+{% block title %}{{ item.title }} | FoundIT @ IBBU{% endblock %}
 {% block content %}
 <section class="page-header">
   <div>
     <span class="eyebrow">{{ item_kind|title }} item</span>
     <h1>{{ item.title }}</h1>
-    <p class="page-subtitle">Inspect the full record, verify key metadata, and review any suggested counterpart reports.</p>
+    <p class="page-subtitle">View the record and related matches.</p>
   </div>
   <div class="page-actions">
     {% set status = item.status %}
@@ -88,7 +88,7 @@
                   <span><i data-lucide="map-pin"></i>{{ match.found_item.location }}</span>
                   <span><i data-lucide="calendar-days"></i>{{ match.found_item.date_found.strftime('%b %d, %Y') }}</span>
                 </div>
-                <a class="btn btn-secondary btn-sm" href="{{ url_for('items.view_found_item', item_id=match.found_item.id) }}">Open found item</a>
+                <a class="btn btn-secondary btn-sm" href="{{ url_for('items.view_found_item', item_id=match.found_item.id) }}">View found item</a>
               {% else %}
                 <h3>{{ match.lost_item.title }}</h3>
                 <p>{{ match.lost_item.description[:155] }}{% if match.lost_item.description|length > 155 %}...{% endif %}</p>
@@ -96,14 +96,14 @@
                   <span><i data-lucide="map-pin"></i>{{ match.lost_item.location }}</span>
                   <span><i data-lucide="calendar-days"></i>{{ match.lost_item.date_lost.strftime('%b %d, %Y') }}</span>
                 </div>
-                <a class="btn btn-secondary btn-sm" href="{{ url_for('items.view_lost_item', item_id=match.lost_item.id) }}">Open lost item</a>
+                <a class="btn btn-secondary btn-sm" href="{{ url_for('items.view_lost_item', item_id=match.lost_item.id) }}">View lost item</a>
               {% endif %}
             </div>
           </div>
         {% else %}
           {% set icon = 'sparkles' %}
           {% set title = 'No suggested matches yet' %}
-          {% set message = 'Once similar reports appear in the system, they will show up here with confidence signals.' %}
+          {% set message = 'Related reports will appear here.' %}
           {% include 'partials/_empty_state.html' %}
         {% endfor %}
       </div>

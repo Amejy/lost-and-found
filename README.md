@@ -1,6 +1,6 @@
-# Web-Based Lost and Found Management System
+# FoundIT @ IBBU
 
-A production-oriented lost and found platform built with Flask, SQLAlchemy, Bootstrap, and a PostgreSQL-ready relational schema. The application supports user registration, role-based access control, lost/found item reporting, automatic matching, ownership claims, admin review workflows, and in-app notifications.
+A production-oriented SaaS platform for campus item recovery, built with Flask, SQLAlchemy, Bootstrap, and a PostgreSQL-ready relational schema. The application supports user registration, role-based access control, lost/found item reporting, automatic matching, ownership claims, admin review workflows, and in-app notifications.
 
 ## Features
 
@@ -10,7 +10,7 @@ A production-oriented lost and found platform built with Flask, SQLAlchemy, Boot
 - Automatic match suggestions using description, category, location, and date proximity
 - Ownership claim submission with optional supporting image
 - Admin dashboard for reviewing claims, managing users, deleting records, and generating password reset links
-- Web-based editing flow for existing lost/found records
+- Web-based editing flow for existing recovered and reported items
 - RESTful JSON API for authentication, items, claims, and admin reporting
 - In-app notifications for match alerts and claim decisions
 - PostgreSQL schema plus SQLite development fallback for quick local startup

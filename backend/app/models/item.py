@@ -37,6 +37,7 @@ class LostItem(TimestampMixin, db.Model):
     __tablename__ = "lost_items"
 
     id = db.Column(db.Integer, primary_key=True)
+    organization_id = db.Column(db.Integer, db.ForeignKey("organizations.id"), index=True)
     reporter_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
     title = db.Column(db.String(150), nullable=False, index=True)
     description = db.Column(db.Text, nullable=False)
@@ -47,6 +48,7 @@ class LostItem(TimestampMixin, db.Model):
     status = db.Column(SqlEnum(ItemStatus), nullable=False, default=ItemStatus.OPEN, index=True)
 
     reporter = db.relationship("User", back_populates="lost_items")
+    organization = db.relationship("Organization", back_populates="lost_items")
     claims = db.relationship("Claim", back_populates="lost_item", lazy="dynamic")
     match_links = db.relationship(
         "ItemMatch",
@@ -65,6 +67,7 @@ class FoundItem(TimestampMixin, db.Model):
     __tablename__ = "found_items"
 
     id = db.Column(db.Integer, primary_key=True)
+    organization_id = db.Column(db.Integer, db.ForeignKey("organizations.id"), index=True)
     reporter_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
     title = db.Column(db.String(150), nullable=False, index=True)
     description = db.Column(db.Text, nullable=False)
@@ -75,6 +78,7 @@ class FoundItem(TimestampMixin, db.Model):
     status = db.Column(SqlEnum(ItemStatus), nullable=False, default=ItemStatus.OPEN, index=True)
 
     reporter = db.relationship("User", back_populates="found_items")
+    organization = db.relationship("Organization", back_populates="found_items")
     claims = db.relationship("Claim", back_populates="found_item", lazy="dynamic")
     match_links = db.relationship(
         "ItemMatch",
@@ -93,6 +97,7 @@ class ItemMatch(TimestampMixin, db.Model):
     __tablename__ = "item_matches"
 
     id = db.Column(db.Integer, primary_key=True)
+    organization_id = db.Column(db.Integer, db.ForeignKey("organizations.id"), index=True)
     lost_item_id = db.Column(
         db.Integer, db.ForeignKey("lost_items.id", ondelete="CASCADE"), nullable=False
     )
@@ -106,6 +111,7 @@ class ItemMatch(TimestampMixin, db.Model):
 
     lost_item = db.relationship("LostItem", back_populates="match_links", foreign_keys=[lost_item_id])
     found_item = db.relationship("FoundItem", back_populates="match_links", foreign_keys=[found_item_id])
+    organization = db.relationship("Organization", back_populates="item_matches")
 
     __table_args__ = (
         UniqueConstraint("lost_item_id", "found_item_id", name="uq_item_matches_pair"),

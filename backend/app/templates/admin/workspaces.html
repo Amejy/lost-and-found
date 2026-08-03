@@ -1,0 +1,222 @@
+{% extends 'base.html' %}
+{% block title %}Workspaces | FoundIT @ IBBU{% endblock %}
+{% block content %}
+<section class="page-header">
+  <div>
+    <span class="eyebrow">Admin</span>
+    <h1>Workspace management</h1>
+    <p class="page-subtitle">Manage members, invites, and webhooks.</p>
+  </div>
+</section>
+
+<section class="metric-grid">
+  <div class="metric-card">
+    <div class="metric-icon"><i data-lucide="building-2"></i></div>
+    <div>
+      <span>Workspace</span>
+      <strong>{{ workspace.name }}</strong>
+    </div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-icon"><i data-lucide="users"></i></div>
+    <div>
+      <span>Members</span>
+      <strong data-counter="{{ seat_count }}">{{ seat_count }}</strong>
+    </div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-icon"><i data-lucide="badge-info"></i></div>
+    <div>
+      <span>Seat limit</span>
+      <strong>{{ seat_limit }}</strong>
+    </div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-icon"><i data-lucide="mail-plus"></i></div>
+    <div>
+      <span>Pending invites</span>
+      <strong>{{ active_invites|length }}</strong>
+    </div>
+  </div>
+</section>
+
+<section class="content-grid">
+  <div class="content-stack">
+    <div class="saas-card">
+      <div class="section-head">
+        <div>
+          <span class="section-kicker">Invite members</span>
+          <h2>Send a workspace invite</h2>
+        </div>
+      </div>
+      <form method="post" class="form-grid-form" data-loading-form="true">
+        {{ invite_form.hidden_tag() }}
+        <input type="hidden" name="form_type" value="invite">
+        <div class="form-grid two-up">
+          <label class="field">
+            <span>{{ invite_form.email.label.text }}</span>
+            {{ invite_form.email(class="form-control", placeholder="member@school.edu") }}
+            {% if invite_form.email.errors %}<div class="field-error">{{ invite_form.email.errors[0] }}</div>{% endif %}
+          </label>
+          <label class="field">
+            <span>{{ invite_form.role.label.text }}</span>
+            {{ invite_form.role(class="form-select") }}
+          </label>
+        </div>
+        <div class="settings-note">Invites expire automatically.</div>
+        <div class="form-actions">
+          {{ invite_form.submit(class="btn btn-primary") }}
+        </div>
+      </form>
+    </div>
+
+    <div class="saas-card">
+      <div class="section-head">
+        <div>
+          <span class="section-kicker">Members</span>
+          <h2>Current team</h2>
+        </div>
+      </div>
+      {% if members %}
+        <div class="table-responsive">
+          <table class="table data-table align-middle">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Joined</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for member in members %}
+                <tr>
+                  <td>{{ member.full_name }}</td>
+                  <td>{{ member.email }}</td>
+                  <td><span class="role-pill">{{ member.role.value|title }}</span></td>
+                  <td>{{ member.created_at.strftime('%b %d, %Y') }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        {% set icon = 'users' %}
+        {% set title = 'No members yet' %}
+        {% set message = 'Workspace members will appear here.' %}
+        {% include 'partials/_empty_state.html' %}
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="content-stack">
+    <div class="saas-card">
+      <div class="section-head">
+        <div>
+          <span class="section-kicker">Pending invites</span>
+          <h2>Invite queue</h2>
+        </div>
+      </div>
+      {% if active_invites %}
+        <div class="api-key-list">
+          {% for invite in active_invites %}
+            <div class="api-key-row">
+              <div class="list-copy">
+                <strong>{{ invite.email }}</strong>
+                <span>{{ invite.role|title }} access · Expires {{ invite.expires_at.strftime('%b %d, %Y') }}</span>
+                <span>
+                  <a href="{{ url_for('auth.invite_details', token=invite.generate_token(), _external=True) }}" target="_blank" rel="noopener">
+                    Invite link
+                  </a>
+                </span>
+              </div>
+              <div class="api-key-actions">
+                <span class="role-pill">{% if invite.is_active %}Active{% else %}Inactive{% endif %}</span>
+                <form method="post" action="{{ url_for('admin.revoke_workspace_invite', invite_id=invite.id) }}" data-loading-form="true">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button class="btn btn-ghost btn-sm" type="submit" data-confirm-title="Revoke invite?" data-confirm-message="This invite link will stop working immediately.">Revoke</button>
+                </form>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        {% set icon = 'mail' %}
+        {% set title = 'No pending invites' %}
+        {% set message = 'Send an invite to add teammates.' %}
+        {% include 'partials/_empty_state.html' %}
+      {% endif %}
+    </div>
+
+    <div class="saas-card">
+      <div class="section-head">
+        <div>
+          <span class="section-kicker">Webhooks</span>
+          <h2>Webhooks</h2>
+        </div>
+      </div>
+      {% if new_webhook_secret %}
+        <div class="api-secret-banner">
+          <span>Signing secret</span>
+          <strong>{{ new_webhook_secret }}</strong>
+          <p>Copy this now. It is shown once.</p>
+        </div>
+      {% endif %}
+      <form method="post" class="form-grid-form" data-loading-form="true">
+        {{ webhook_form.hidden_tag() }}
+        <input type="hidden" name="form_type" value="webhook">
+        <div class="form-grid two-up">
+          <label class="field">
+            <span>{{ webhook_form.name.label.text }}</span>
+            {{ webhook_form.name(class="form-control", placeholder="Zapier event feed") }}
+            {% if webhook_form.name.errors %}<div class="field-error">{{ webhook_form.name.errors[0] }}</div>{% endif %}
+          </label>
+          <label class="field">
+            <span>{{ webhook_form.url.label.text }}</span>
+            {{ webhook_form.url(class="form-control", placeholder="https://example.com/webhook") }}
+            {% if webhook_form.url.errors %}<div class="field-error">{{ webhook_form.url.errors[0] }}</div>{% endif %}
+          </label>
+        </div>
+        <label class="field">
+          <span>{{ webhook_form.events.label.text }}</span>
+          {{ webhook_form.events(class="form-select", multiple=True) }}
+          <small class="settings-note">Select one or more events.</small>
+        </label>
+        <div class="form-actions">
+          {{ webhook_form.submit(class="btn btn-secondary") }}
+        </div>
+      </form>
+
+      <div class="api-key-list">
+        {% if webhook_endpoints %}
+          {% for endpoint in webhook_endpoints %}
+            <div class="api-key-row">
+              <div class="list-copy">
+                <strong>{{ endpoint.name }}</strong>
+                <span>{{ endpoint.url }}</span>
+                <span>
+                  {% for event in endpoint.event_labels %}
+                    <span class="permission-chip">{{ event.replace('.', ' ')|title }}</span>
+                  {% endfor %}
+                </span>
+              </div>
+              <div class="api-key-actions">
+                <span class="role-pill {% if not endpoint.is_active %}role-pill-muted{% endif %}">Active</span>
+                <form method="post" action="{{ url_for('admin.delete_webhook_endpoint', endpoint_id=endpoint.id) }}" data-loading-form="true">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button class="btn btn-ghost btn-sm" type="submit" data-confirm-title="Delete webhook?" data-confirm-message="This webhook endpoint will stop receiving events.">Delete</button>
+                </form>
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          {% set icon = 'plug' %}
+          {% set title = 'No webhook endpoints yet' %}
+        {% set message = 'Create a webhook for automations.' %}
+          {% include 'partials/_empty_state.html' %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

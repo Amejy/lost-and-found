@@ -9,9 +9,11 @@ from backend.app.forms.item import FoundItemForm, LostItemForm
 from backend.app.models.claim import Claim, ClaimStatus
 from backend.app.models.item import FoundItem, ItemMatch, ItemStatus, LostItem
 from backend.app.services.item_state import MATCHABLE_ITEM_STATUSES, is_editable_item_status
+from backend.app.services.audit import log_audit_event
 from backend.app.services.items import delete_item_with_dependencies
 from backend.app.services.matching import refresh_matches_for_item
 from backend.app.services.validation import parse_date
+from backend.app.services.tenant import get_current_organization, scope_query
 from backend.app.utils import save_image
 
 
@@ -50,7 +52,7 @@ def _apply_listing_filters(query, model, date_field_name):
 
 
 def _status_breakdown(model):
-    active_query = model.query.filter(model.status != ItemStatus.ARCHIVED)
+    active_query = scope_query(model.query.filter(model.status != ItemStatus.ARCHIVED), model)
     return {
         "total": active_query.count(),
         "open": active_query.filter_by(status=ItemStatus.OPEN).count(),
@@ -59,12 +61,34 @@ def _status_breakdown(model):
     }
 
 
+def _item_snapshot(item):
+    snapshot = {
+        "title": item.title,
+        "description": item.description,
+        "category": item.category,
+        "location": item.location,
+        "status": item.status.value if hasattr(item.status, "value") else item.status,
+        "organization_id": item.organization_id,
+        "reporter_id": item.reporter_id,
+    }
+    if hasattr(item, "date_lost"):
+        snapshot["date_lost"] = item.date_lost.isoformat()
+    if hasattr(item, "date_found"):
+        snapshot["date_found"] = item.date_found.isoformat()
+    return snapshot
+
+
 @items_bp.route("/lost-items")
 @login_required
 def list_lost_items():
     page = request.args.get("page", default=1, type=int)
     per_page = current_app.config["ITEMS_PER_PAGE"]
-    query = LostItem.query.filter(LostItem.status != ItemStatus.ARCHIVED).order_by(LostItem.created_at.desc())
+    workspace = get_current_organization()
+    query = scope_query(
+        LostItem.query.filter(LostItem.status != ItemStatus.ARCHIVED).order_by(LostItem.created_at.desc()),
+        LostItem,
+        workspace.id,
+    )
 
     try:
         query = _apply_listing_filters(query, LostItem, "date_lost")
@@ -92,7 +116,12 @@ def list_lost_items():
 def list_found_items():
     page = request.args.get("page", default=1, type=int)
     per_page = current_app.config["ITEMS_PER_PAGE"]
-    query = FoundItem.query.filter(FoundItem.status != ItemStatus.ARCHIVED).order_by(FoundItem.created_at.desc())
+    workspace = get_current_organization()
+    query = scope_query(
+        FoundItem.query.filter(FoundItem.status != ItemStatus.ARCHIVED).order_by(FoundItem.created_at.desc()),
+        FoundItem,
+        workspace.id,
+    )
 
     try:
         query = _apply_listing_filters(query, FoundItem, "date_found")
@@ -120,12 +149,14 @@ def list_found_items():
 def report_lost_item():
     form = LostItemForm()
     if form.validate_on_submit():
+        workspace = get_current_organization()
         try:
             image_filename = save_image(form.image.data) if form.image.data else None
         except ValueError as exc:
             flash(str(exc), "danger")
             return render_template("dashboard/report_item.html", form=form, item_kind="lost")
         item = LostItem(
+            organization=workspace,
             reporter=current_user,
             title=form.title.data.strip(),
             description=form.description.data.strip(),
@@ -136,7 +167,19 @@ def report_lost_item():
         )
         db.session.add(item)
         db.session.flush()
-        refresh_matches_for_item(item, "lost", current_app.config["NOTIFICATION_MATCH_THRESHOLD"])
+        refresh_matches_for_item(
+            item,
+            "lost",
+            current_app.config["NOTIFICATION_MATCH_THRESHOLD"],
+            workspace.id,
+        )
+        log_audit_event(
+            "create",
+            "lost_item",
+            entity_id=item.id,
+            after_data=_item_snapshot(item),
+            organization=workspace,
+        )
         db.session.commit()
         flash("Lost item report submitted successfully.", "success")
         return redirect(url_for("items.view_lost_item", item_id=item.id))
@@ -149,12 +192,14 @@ def report_lost_item():
 def report_found_item():
     form = FoundItemForm()
     if form.validate_on_submit():
+        workspace = get_current_organization()
         try:
             image_filename = save_image(form.image.data) if form.image.data else None
         except ValueError as exc:
             flash(str(exc), "danger")
             return render_template("dashboard/report_item.html", form=form, item_kind="found")
         item = FoundItem(
+            organization=workspace,
             reporter=current_user,
             title=form.title.data.strip(),
             description=form.description.data.strip(),
@@ -165,7 +210,19 @@ def report_found_item():
         )
         db.session.add(item)
         db.session.flush()
-        refresh_matches_for_item(item, "found", current_app.config["NOTIFICATION_MATCH_THRESHOLD"])
+        refresh_matches_for_item(
+            item,
+            "found",
+            current_app.config["NOTIFICATION_MATCH_THRESHOLD"],
+            workspace.id,
+        )
+        log_audit_event(
+            "create",
+            "found_item",
+            entity_id=item.id,
+            after_data=_item_snapshot(item),
+            organization=workspace,
+        )
         db.session.commit()
         flash("Found item report submitted successfully.", "success")
         return redirect(url_for("items.view_found_item", item_id=item.id))
@@ -177,8 +234,12 @@ def report_found_item():
 @login_required
 def view_lost_item(item_id):
     item = get_or_404(LostItem, item_id)
+    workspace = get_current_organization()
+    if item.organization_id != workspace.id:
+        abort(404)
     matches = (
         item.match_links.filter(
+            ItemMatch.organization_id == workspace.id,
             ItemMatch.found_item.has(FoundItem.status.in_(MATCHABLE_ITEM_STATUSES))
         )
         .order_by(ItemMatch.score.desc())
@@ -191,8 +252,12 @@ def view_lost_item(item_id):
 @login_required
 def view_found_item(item_id):
     item = get_or_404(FoundItem, item_id)
+    workspace = get_current_organization()
+    if item.organization_id != workspace.id:
+        abort(404)
     matches = (
         item.match_links.filter(
+            ItemMatch.organization_id == workspace.id,
             ItemMatch.lost_item.has(LostItem.status.in_(MATCHABLE_ITEM_STATUSES))
         )
         .order_by(ItemMatch.score.desc())
@@ -214,6 +279,9 @@ def view_found_item(item_id):
 @login_required
 def edit_lost_item(item_id):
     item = get_or_404(LostItem, item_id)
+    workspace = get_current_organization()
+    if item.organization_id != workspace.id:
+        abort(404)
     if not owner_or_admin(item.reporter_id):
         flash("You do not have permission to edit this record.", "danger")
         return redirect(url_for("items.view_lost_item", item_id=item.id))
@@ -235,7 +303,7 @@ def edit_lost_item(item_id):
         item.category = form.category.data
         item.location = form.location.data.strip()
         item.date_lost = form.date_lost.data
-        refresh_matches_for_item(item, "lost", current_app.config["NOTIFICATION_MATCH_THRESHOLD"])
+        refresh_matches_for_item(item, "lost", current_app.config["NOTIFICATION_MATCH_THRESHOLD"], workspace.id)
         db.session.commit()
         flash("Lost item updated successfully.", "success")
         return redirect(url_for("items.view_lost_item", item_id=item.id))
@@ -247,6 +315,9 @@ def edit_lost_item(item_id):
 @login_required
 def edit_found_item(item_id):
     item = get_or_404(FoundItem, item_id)
+    workspace = get_current_organization()
+    if item.organization_id != workspace.id:
+        abort(404)
     if not owner_or_admin(item.reporter_id):
         flash("You do not have permission to edit this record.", "danger")
         return redirect(url_for("items.view_found_item", item_id=item.id))
@@ -268,7 +339,7 @@ def edit_found_item(item_id):
         item.category = form.category.data
         item.location = form.location.data.strip()
         item.date_found = form.date_found.data
-        refresh_matches_for_item(item, "found", current_app.config["NOTIFICATION_MATCH_THRESHOLD"])
+        refresh_matches_for_item(item, "found", current_app.config["NOTIFICATION_MATCH_THRESHOLD"], workspace.id)
         db.session.commit()
         flash("Found item updated successfully.", "success")
         return redirect(url_for("items.view_found_item", item_id=item.id))
@@ -280,12 +351,22 @@ def edit_found_item(item_id):
 @login_required
 def delete_lost_item(item_id):
     item = get_or_404(LostItem, item_id)
+    workspace = get_current_organization()
+    if item.organization_id != workspace.id:
+        abort(404)
     if not owner_or_admin(item.reporter_id):
         flash("You do not have permission to delete this record.", "danger")
         return redirect(url_for("items.view_lost_item", item_id=item.id))
 
     try:
         outcome = delete_item_with_dependencies(item)
+        log_audit_event(
+            "delete",
+            "lost_item",
+            entity_id=item.id,
+            before_data=_item_snapshot(item),
+            organization=workspace,
+        )
         db.session.commit()
     except SQLAlchemyError:
         db.session.rollback()
@@ -311,12 +392,22 @@ def delete_lost_item(item_id):
 @login_required
 def delete_found_item(item_id):
     item = get_or_404(FoundItem, item_id)
+    workspace = get_current_organization()
+    if item.organization_id != workspace.id:
+        abort(404)
     if not owner_or_admin(item.reporter_id):
         flash("You do not have permission to delete this record.", "danger")
         return redirect(url_for("items.view_found_item", item_id=item.id))
 
     try:
         outcome = delete_item_with_dependencies(item)
+        log_audit_event(
+            "delete",
+            "found_item",
+            entity_id=item.id,
+            before_data=_item_snapshot(item),
+            organization=workspace,
+        )
         db.session.commit()
     except SQLAlchemyError:
         db.session.rollback()

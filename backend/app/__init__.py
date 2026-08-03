@@ -7,12 +7,19 @@ from backend.app.config import config_by_name
 from backend.app.extensions import csrf, db, login_manager
 from backend.app.models import User, UserRole
 from backend.app.routes import admin_bp, api_bp, auth_bp, claims_bp, items_bp, main_bp
+from backend.app.services.tenant import (
+    backfill_default_organization,
+    ensure_tenant_schema,
+    register_tenant_hooks,
+)
 
 
 def register_cli_commands(app):
     @app.cli.command("init-db")
     def init_db():
         db.create_all()
+        ensure_tenant_schema()
+        backfill_default_organization()
         print("Database tables created.")
 
     @app.cli.command("seed-admin")
@@ -80,9 +87,13 @@ def create_app(config_name=None, test_config=None):
     db.init_app(app)
     login_manager.init_app(app)
     csrf.init_app(app)
+    register_tenant_hooks()
     if not app.config.get("TESTING"):
-        initialize_database(app)
-        initialize_admin_account(app)
+        with app.app_context():
+            initialize_database(app)
+            ensure_tenant_schema()
+            backfill_default_organization()
+            initialize_admin_account(app)
 
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp)
@@ -103,6 +114,13 @@ def create_app(config_name=None, test_config=None):
     @app.route("/uploads/<path:filename>")
     def uploaded_file(filename):
         return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
+
+    @app.route("/favicon.ico")
+    def favicon():
+        return send_from_directory(
+            Path(app.static_folder) / "img",
+            "logo.png",
+        )
 
     @app.route("/healthz")
     def healthz():

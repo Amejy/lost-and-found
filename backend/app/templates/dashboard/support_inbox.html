@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% block title %}Support Inbox | FoundIT @ IBBU{% endblock %}
+{% block content %}
+<section class="page-header">
+  <div>
+    <span class="eyebrow">Support</span>
+    <h1>Support inbox</h1>
+    <p class="page-subtitle">Track help requests and resolution notes.</p>
+  </div>
+</section>
+
+<section class="saas-card">
+  <div class="chip-row">
+    <a class="segment {% if status_filter == 'all' %}is-selected{% endif %}" href="{{ url_for('main.support_inbox', status='all') }}">All ({{ status_counts.all }})</a>
+    <a class="segment {% if status_filter == 'open' %}is-selected{% endif %}" href="{{ url_for('main.support_inbox', status='open') }}">Open ({{ status_counts.open }})</a>
+    <a class="segment {% if status_filter == 'in_progress' %}is-selected{% endif %}" href="{{ url_for('main.support_inbox', status='in_progress') }}">In progress ({{ status_counts.in_progress }})</a>
+    <a class="segment {% if status_filter == 'resolved' %}is-selected{% endif %}" href="{{ url_for('main.support_inbox', status='resolved') }}">Resolved ({{ status_counts.resolved }})</a>
+    <a class="segment {% if status_filter == 'closed' %}is-selected{% endif %}" href="{{ url_for('main.support_inbox', status='closed') }}">Closed ({{ status_counts.closed }})</a>
+  </div>
+</section>
+
+<section class="content-stack">
+  {% for support_request in support_requests %}
+    <article class="saas-card support-ticket-card">
+      <div class="section-head">
+        <div>
+          <span class="section-kicker">{{ support_request.category|title }}</span>
+          <h2>{{ support_request.subject }}</h2>
+        </div>
+        <span class="role-pill">{{ support_request.status.value|replace('_', ' ')|title }}</span>
+      </div>
+      <p class="detail-copy">{{ support_request.message }}</p>
+      <div class="detail-stat-grid">
+        <div class="detail-stat">
+          <span>Requester</span>
+          <strong>{{ support_request.requester.full_name }}</strong>
+        </div>
+        <div class="detail-stat">
+          <span>Opened</span>
+          <strong>{{ support_request.created_at.strftime('%b %d, %Y %H:%M') }}</strong>
+        </div>
+      </div>
+      {% if support_request.resolution_notes %}
+        <div class="settings-note">
+          <strong>Resolution</strong>
+          <p>{{ support_request.resolution_notes }}</p>
+        </div>
+      {% endif %}
+      <form method="post" action="{{ url_for('main.update_support_request', request_id=support_request.id) }}" class="support-resolve-form" data-loading-form="true">
+        {{ ticket_form.hidden_tag() }}
+        <label class="field">
+          <span>Status</span>
+          <select class="form-select" name="status">
+            <option value="open" {% if support_request.status.value == 'open' %}selected{% endif %}>Open</option>
+            <option value="in_progress" {% if support_request.status.value == 'in_progress' %}selected{% endif %}>In progress</option>
+            <option value="resolved" {% if support_request.status.value == 'resolved' %}selected{% endif %}>Resolved</option>
+            <option value="closed" {% if support_request.status.value == 'closed' %}selected{% endif %}>Closed</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>{{ ticket_form.resolution_notes.label.text }}</span>
+          {{ ticket_form.resolution_notes(class="form-control", rows="4", placeholder="Explain the fix, escalation, or closure notes.") }}
+        </label>
+        <div class="form-actions">
+          {{ ticket_form.submit(class="btn btn-secondary") }}
+        </div>
+      </form>
+    </article>
+  {% else %}
+    {% set icon = 'inbox' %}
+    {% set title = 'No support requests' %}
+    {% set message = 'New help requests will appear here.' %}
+    {% include 'partials/_empty_state.html' %}
+  {% endfor %}
+</section>
+{% endblock %}

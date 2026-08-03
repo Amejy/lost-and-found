@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Notifications | Lost & Found{% endblock %}
+{% block title %}Notifications | FoundIT @ IBBU{% endblock %}
 {% block content %}
 {% set unread = namespace(count=0) %}
 {% for notification in notifications %}
@@ -11,8 +11,8 @@
 <section class="page-header">
   <div>
     <span class="eyebrow">Notifications</span>
-    <h1>Stay on top of workflow updates</h1>
-    <p class="page-subtitle">Match alerts, claim decisions, and other system messages appear here in a clean, readable feed.</p>
+    <h1>Notifications</h1>
+    <p class="page-subtitle">See alerts, claim decisions, and system messages.</p>
   </div>
   <div class="page-actions">
     <div class="metric-inline">
@@ -43,7 +43,7 @@
       </div>
       <div class="notification-actions">
         {% if notification.related_url %}
-          <a class="btn btn-secondary btn-sm" href="{{ notification.related_url }}">Open</a>
+          <a class="btn btn-secondary btn-sm" href="{{ notification.related_url }}">View</a>
         {% endif %}
         {% if not notification.is_read %}
           <form method="post" action="{{ url_for('main.mark_notification_read', notification_id=notification.id) }}" data-loading-form="true">
@@ -56,7 +56,7 @@
   {% else %}
     {% set icon = 'bell-off' %}
     {% set title = 'No notifications yet' %}
-    {% set message = 'You will see match alerts and claim decisions here as your workflow becomes active.' %}
+    {% set message = 'Alerts and claim decisions will appear here.' %}
     {% include 'partials/_empty_state.html' %}
   {% endfor %}
 </section>

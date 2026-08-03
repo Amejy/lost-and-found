@@ -1,0 +1,345 @@
+{% extends 'base.html' %}
+{% block title %}Analytics | FoundIT @ IBBU{% endblock %}
+{% block content %}
+<section class="page-header">
+  <div>
+    <span class="eyebrow">Admin</span>
+    <h1>Analytics and reporting</h1>
+    <p class="page-subtitle">Track claims, support, and activity.</p>
+  </div>
+  <div class="page-actions">
+    <a class="btn btn-secondary" href="{{ url_for('admin.export_analytics') }}">Export CSV</a>
+    <a class="btn btn-primary" href="{{ url_for('admin.audit_logs') }}">Open audit logs</a>
+  </div>
+</section>
+
+<section class="metric-grid">
+  <div class="metric-card">
+    <div class="metric-icon"><i data-lucide="users"></i></div>
+    <div>
+      <span>Users</span>
+      <strong data-counter="{{ stats.users }}">{{ stats.users }}</strong>
+    </div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-icon"><i data-lucide="boxes"></i></div>
+    <div>
+      <span>Active items</span>
+      <strong data-counter="{{ stats.active_items }}">{{ stats.active_items }}</strong>
+    </div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-icon"><i data-lucide="clipboard-check"></i></div>
+    <div>
+      <span>Total claims</span>
+      <strong data-counter="{{ stats.claims_total }}">{{ stats.claims_total }}</strong>
+    </div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-icon"><i data-lucide="life-buoy"></i></div>
+    <div>
+      <span>Open support</span>
+      <strong data-counter="{{ stats.support_open }}">{{ stats.support_open }}</strong>
+    </div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-icon"><i data-lucide="shield-check"></i></div>
+    <div>
+      <span>Claim approval rate</span>
+      <strong data-counter="{{ stats.claim_resolution_rate }}">{{ stats.claim_resolution_rate }}%</strong>
+    </div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-icon"><i data-lucide="clock-3"></i></div>
+    <div>
+      <span>Avg. review time</span>
+      <strong>{{ stats.avg_resolution_hours }}h</strong>
+    </div>
+  </div>
+</section>
+
+<section class="content-grid">
+  <div class="content-stack">
+    <div class="saas-card analytics-card deferred-surface">
+      <div class="section-head">
+        <div>
+          <span class="section-kicker">Trend view</span>
+          <h2>Last 14 days</h2>
+        </div>
+      </div>
+      <div class="sparkline-grid">
+        <div class="sparkline-widget">
+          <div class="sparkline-header">
+            <div>
+              <span>Lost items</span>
+              <strong data-counter="{{ item_series.lost.total }}">{{ item_series.lost.total }}</strong>
+            </div>
+            <span class="sparkline-tone tone-primary">Tracked</span>
+          </div>
+          <div class="sparkline-canvas" data-sparkline="{{ item_series.lost['values']|join(',') }}" data-sparkline-color="primary" aria-label="Lost item trend chart"></div>
+          <p class="sparkline-caption">{{ item_series.lost['labels'][0] }} to {{ item_series.lost['labels'][-1] }}</p>
+        </div>
+        <div class="sparkline-widget">
+          <div class="sparkline-header">
+            <div>
+              <span>Found items</span>
+              <strong data-counter="{{ item_series.found.total }}">{{ item_series.found.total }}</strong>
+            </div>
+            <span class="sparkline-tone tone-accent">Tracked</span>
+          </div>
+          <div class="sparkline-canvas" data-sparkline="{{ item_series.found['values']|join(',') }}" data-sparkline-color="accent" aria-label="Found item trend chart"></div>
+          <p class="sparkline-caption">{{ item_series.found['labels'][0] }} to {{ item_series.found['labels'][-1] }}</p>
+        </div>
+        <div class="sparkline-widget">
+          <div class="sparkline-header">
+            <div>
+              <span>Claims</span>
+              <strong data-counter="{{ item_series.claims.total }}">{{ item_series.claims.total }}</strong>
+            </div>
+            <span class="sparkline-tone tone-warning">Review</span>
+          </div>
+          <div class="sparkline-canvas" data-sparkline="{{ item_series.claims['values']|join(',') }}" data-sparkline-color="warning" aria-label="Claim trend chart"></div>
+          <p class="sparkline-caption">{{ item_series.claims['labels'][0] }} to {{ item_series.claims['labels'][-1] }}</p>
+        </div>
+        <div class="sparkline-widget">
+          <div class="sparkline-header">
+            <div>
+              <span>Support tickets</span>
+              <strong data-counter="{{ item_series.support.total }}">{{ item_series.support.total }}</strong>
+            </div>
+            <span class="sparkline-tone tone-primary">Help</span>
+          </div>
+          <div class="sparkline-canvas" data-sparkline="{{ item_series.support['values']|join(',') }}" data-sparkline-color="primary" aria-label="Support ticket trend chart"></div>
+          <p class="sparkline-caption">{{ item_series.support['labels'][0] }} to {{ item_series.support['labels'][-1] }}</p>
+        </div>
+      </div>
+      <div class="progress-panel">
+        <div class="progress-copy">
+          <span>Claim approval rate</span>
+          <strong>{{ stats.claim_resolution_rate }}%</strong>
+        </div>
+        <div class="progress-track" aria-hidden="true">
+          <div class="progress-bar-fill" data-progress="{{ stats.claim_resolution_rate }}"></div>
+        </div>
+        <div class="progress-meta">
+          <span>Approved: {{ stats.approved_claims }}</span>
+          <span>Rejected: {{ stats.rejected_claims }}</span>
+        </div>
+      </div>
+      <div class="progress-panel">
+        <div class="progress-copy">
+          <span>Support resolution rate</span>
+          <strong>{{ stats.support_resolution_rate }}%</strong>
+        </div>
+        <div class="progress-track" aria-hidden="true">
+          <div class="progress-bar-fill" data-progress="{{ stats.support_resolution_rate }}"></div>
+        </div>
+        <div class="progress-meta">
+          <span>Resolved: {{ stats.support_resolved }}</span>
+          <span>Open: {{ stats.support_open }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="saas-card">
+      <div class="section-head">
+        <div>
+          <span class="section-kicker">Operational health</span>
+          <h2>Busiest areas</h2>
+        </div>
+      </div>
+      <div class="sparkline-grid">
+        <div class="sparkline-widget">
+          <div class="sparkline-header">
+            <div>
+              <span>Audit activity</span>
+              <strong data-counter="{{ item_series.audit.total }}">{{ item_series.audit.total }}</strong>
+            </div>
+            <span class="sparkline-tone tone-accent">Trail</span>
+          </div>
+          <div class="sparkline-canvas" data-sparkline="{{ item_series.audit['values']|join(',') }}" data-sparkline-color="accent" aria-label="Audit activity chart"></div>
+          <p class="sparkline-caption">{{ item_series.audit['labels'][0] }} to {{ item_series.audit['labels'][-1] }}</p>
+        </div>
+        <div class="mix-card">
+          <div class="mix-row">
+            <span>Items active</span>
+            <strong>{{ stats.active_items }}</strong>
+          </div>
+          <div class="mix-row">
+            <span>Pending claims</span>
+            <strong>{{ stats.pending_claims }}</strong>
+          </div>
+          <div class="mix-row">
+            <span>Audit events</span>
+            <strong>{{ stats.audit_events }}</strong>
+          </div>
+          <div class="mix-row">
+            <span>Recent audit events</span>
+            <strong>{{ stats.audit_events_recent }}</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-stack">
+    <div class="saas-card">
+      <div class="section-head">
+        <div>
+          <span class="section-kicker">Top categories</span>
+          <h2>Top report themes</h2>
+        </div>
+      </div>
+      {% if top_categories %}
+        <div class="list-group">
+          {% for category, total in top_categories %}
+            <div class="list-row">
+              <div class="list-copy">
+                <strong>{{ category }}</strong>
+                <span>Lost and found reports</span>
+              </div>
+              <span class="role-pill">{{ total }}</span>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        {% set icon = 'folder' %}
+        {% set title = 'No category data yet' %}
+        {% set message = 'Category analytics will appear here.' %}
+        {% include 'partials/_empty_state.html' %}
+      {% endif %}
+    </div>
+
+    <div class="saas-card">
+      <div class="section-head">
+        <div>
+          <span class="section-kicker">Top locations</span>
+          <h2>Frequent campus touchpoints</h2>
+        </div>
+      </div>
+      {% if top_locations %}
+        <div class="list-group">
+          {% for location, total in top_locations %}
+            <div class="list-row">
+              <div class="list-copy">
+                <strong>{{ location }}</strong>
+                <span>Top item location</span>
+              </div>
+              <span class="role-pill">{{ total }}</span>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        {% set icon = 'map-pin' %}
+        {% set title = 'No location data yet' %}
+        {% set message = 'Location analytics will appear here.' %}
+        {% include 'partials/_empty_state.html' %}
+      {% endif %}
+    </div>
+
+    <div class="saas-card">
+      <div class="section-head">
+        <div>
+          <span class="section-kicker">Support themes</span>
+          <h2>Support themes</h2>
+        </div>
+      </div>
+      {% if top_support_categories %}
+        <div class="list-group">
+          {% for category, total in top_support_categories %}
+            <div class="list-row">
+              <div class="list-copy">
+                <strong>{{ category.replace('_', ' ')|title }}</strong>
+                <span>Requests</span>
+              </div>
+              <span class="role-pill">{{ total }}</span>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        {% set icon = 'message-circle' %}
+        {% set title = 'No support requests yet' %}
+        {% set message = 'Support request categories will appear here.' %}
+        {% include 'partials/_empty_state.html' %}
+      {% endif %}
+    </div>
+
+    <div class="saas-card">
+      <div class="section-head">
+        <div>
+          <span class="section-kicker">Recent support</span>
+          <h2>Latest support</h2>
+        </div>
+      </div>
+      {% if recent_support %}
+        <div class="table-responsive">
+          <table class="table data-table align-middle">
+            <thead>
+              <tr>
+                <th>Subject</th>
+                <th>Status</th>
+                <th>Opened</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for request in recent_support %}
+                <tr>
+                  <td>
+                    <div class="table-title">
+                      <strong>{{ request.subject }}</strong>
+                      <span>{{ request.category.replace('_', ' ')|title }}</span>
+                    </div>
+                  </td>
+                  <td><span class="role-pill">{{ request.status.value.replace('_', ' ')|title }}</span></td>
+                  <td>{{ request.created_at.strftime('%b %d, %Y %H:%M') }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        {% set icon = 'inbox' %}
+        {% set title = 'No support tickets yet' %}
+        {% set message = 'New support tickets will appear here.' %}
+        {% include 'partials/_empty_state.html' %}
+      {% endif %}
+    </div>
+
+    <div class="saas-card">
+      <div class="section-head">
+        <div>
+          <span class="section-kicker">Recent audit</span>
+          <h2>Recent changes</h2>
+        </div>
+      </div>
+      {% if recent_audit %}
+        <div class="table-responsive">
+          <table class="table data-table align-middle">
+            <thead>
+              <tr>
+                <th>When</th>
+                <th>Action</th>
+                <th>Entity</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for entry in recent_audit %}
+                <tr>
+                  <td>{{ entry.created_at.strftime('%b %d, %Y %H:%M') }}</td>
+                  <td><span class="role-pill">{{ entry.action.replace('_', ' ')|title }}</span></td>
+                  <td>{{ entry.entity_type.replace('_', ' ')|title }} {% if entry.entity_id %}#{{ entry.entity_id }}{% endif %}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        {% set icon = 'file-search' %}
+        {% set title = 'No audit events yet' %}
+        {% set message = 'Audit history will appear here.' %}
+        {% include 'partials/_empty_state.html' %}
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}

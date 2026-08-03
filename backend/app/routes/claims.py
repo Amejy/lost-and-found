@@ -10,6 +10,7 @@ from backend.app.models.item import FoundItem, ItemStatus, LostItem
 from backend.app.models.notification import NotificationType
 from backend.app.services.item_state import is_claimable_found_status, is_claim_linkable_lost_status
 from backend.app.services.notifications import create_notification
+from backend.app.services.tenant import get_current_organization
 from backend.app.utils import save_image
 
 
@@ -27,6 +28,9 @@ def get_or_404(model, object_id):
 @login_required
 def create_claim(item_id):
     found_item = get_or_404(FoundItem, item_id)
+    workspace = get_current_organization()
+    if found_item.organization_id != workspace.id:
+        abort(404)
     if found_item.reporter_id == current_user.id:
         flash("You cannot submit a claim for an item you reported as found.", "warning")
         return redirect(url_for("items.view_found_item", item_id=found_item.id))
@@ -36,6 +40,7 @@ def create_claim(item_id):
     approved_claim = Claim.query.filter_by(
         found_item_id=found_item.id,
         status=ClaimStatus.APPROVED,
+        organization_id=workspace.id,
     ).first()
     if approved_claim:
         flash("This item already has a verified ownership claim.", "warning")
@@ -48,7 +53,8 @@ def create_claim(item_id):
                 ItemStatus.OPEN,
                 ItemStatus.MATCHED,
                 ItemStatus.CLAIMED,
-            ])
+            ]),
+            LostItem.organization_id == workspace.id,
         )
         .order_by(LostItem.created_at.desc())
         .all()
@@ -76,6 +82,7 @@ def create_claim(item_id):
         existing_claim = Claim.query.filter_by(
             claimant_id=current_user.id,
             found_item_id=found_item.id,
+            organization_id=workspace.id,
         ).first()
         if existing_claim:
             flash("You already submitted a claim for this item.", "warning")
@@ -102,6 +109,14 @@ def create_claim(item_id):
                 found_item=found_item,
                 user_lost_items=user_lost_items,
             )
+        if linked_lost_item and linked_lost_item.organization_id != workspace.id:
+            flash("That lost report belongs to another workspace.", "danger")
+            return render_template(
+                "dashboard/claim_form.html",
+                form=form,
+                found_item=found_item,
+                user_lost_items=user_lost_items,
+            )
         if linked_lost_item and not is_claim_linkable_lost_status(linked_lost_item.status):
             flash("That lost report is no longer eligible to be linked to a new claim.", "danger")
             return render_template(
@@ -111,6 +126,7 @@ def create_claim(item_id):
                 user_lost_items=user_lost_items,
             )
         claim = Claim(
+            organization=workspace,
             claimant=current_user,
             found_item=found_item,
             lost_item=linked_lost_item,
@@ -142,5 +158,10 @@ def create_claim(item_id):
 @claims_bp.route("/claims")
 @login_required
 def my_claims():
-    claims = current_user.claims.order_by(Claim.created_at.desc()).all()
+    workspace = get_current_organization()
+    claims = (
+        current_user.claims.filter(Claim.organization_id == workspace.id)
+        .order_by(Claim.created_at.desc())
+        .all()
+    )
     return render_template("dashboard/claims.html", claims=claims)

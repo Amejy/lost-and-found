@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title %}Help Center | FoundIT @ IBBU{% endblock %}
+{% block content %}
+<section class="page-header">
+  <div>
+    <span class="eyebrow">Support</span>
+    <h1>Help Center</h1>
+    <p class="page-subtitle">Find answers or contact support.</p>
+  </div>
+</section>
+
+<section class="settings-grid">
+  <article class="saas-card settings-card">
+    <div class="section-head">
+      <div>
+        <span class="section-kicker">FAQ</span>
+        <h2>FAQs</h2>
+      </div>
+    </div>
+    <div class="content-stack">
+      {% for item in faq_items %}
+        <div class="support-faq-item">
+          <strong>{{ item.question }}</strong>
+          <p>{{ item.answer }}</p>
+        </div>
+      {% endfor %}
+    </div>
+  </article>
+
+  <article class="saas-card settings-card">
+    <div class="section-head">
+      <div>
+        <span class="section-kicker">Request help</span>
+        <h2>Contact support</h2>
+      </div>
+    </div>
+    <form method="post" class="form-grid-form" data-loading-form="true">
+      {{ form.hidden_tag() }}
+      <label class="field">
+        <span>{{ form.subject.label.text }}</span>
+        {{ form.subject(class="form-control", placeholder="How can we help?") }}
+        {% if form.subject.errors %}<div class="field-error">{{ form.subject.errors[0] }}</div>{% endif %}
+      </label>
+      <label class="field">
+        <span>{{ form.category.label.text }}</span>
+        {{ form.category(class="form-select") }}
+      </label>
+      <label class="field">
+        <span>{{ form.message.label.text }}</span>
+        {{ form.message(class="form-control", rows="6", placeholder="Give us the details so we can help quickly.") }}
+        {% if form.message.errors %}<div class="field-error">{{ form.message.errors[0] }}</div>{% endif %}
+      </label>
+      <div class="form-actions">
+        {{ form.submit(class="btn btn-primary") }}
+      </div>
+    </form>
+  </article>
+</section>
+{% endblock %}

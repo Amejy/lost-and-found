@@ -1,11 +1,11 @@
 {% extends 'base.html' %}
-{% block title %}Review Claim | Lost & Found{% endblock %}
+{% block title %}Review Claim | FoundIT @ IBBU{% endblock %}
 {% block content %}
 <section class="page-header">
   <div>
     <span class="eyebrow">Admin review</span>
     <h1>Review claim for “{{ claim.found_item.title }}”</h1>
-    <p class="page-subtitle">Validate the evidence, compare the records, and finalize the decision with a clear admin note.</p>
+    <p class="page-subtitle">Review the claim and save your decision.</p>
   </div>
 </section>
 
@@ -53,7 +53,7 @@
       <div class="section-head">
         <div>
           <span class="section-kicker">Verification summary</span>
-          <h2>Decision support snapshot</h2>
+          <h2>Review snapshot</h2>
         </div>
       </div>
       <div class="review-summary-grid">
@@ -80,7 +80,7 @@
               Narrative only
             {% endif %}
           </strong>
-          <p>Review the evidence board below before confirming ownership.</p>
+          <p>Compare the records before confirming ownership.</p>
         </article>
       </div>
       <div class="review-checklist">
@@ -161,7 +161,7 @@
             {% endif %}
           {% else %}
             <strong>No linked lost report</strong>
-            <p>This claim was submitted without attaching an earlier lost-item report, so the admin decision depends on the narrative and any proof image.</p>
+            <p>No linked lost report was attached. Review the narrative and proof image.</p>
           {% endif %}
         </article>
       </div>

@@ -1,4 +1,4 @@
--- PostgreSQL schema for the Lost and Found Management System.
+-- PostgreSQL schema for the FoundIT @ IBBU system.
 
 CREATE TYPE user_role AS ENUM ('user', 'admin');
 CREATE TYPE item_status AS ENUM ('open', 'matched', 'claimed', 'resolved', 'archived');

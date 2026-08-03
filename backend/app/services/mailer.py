@@ -61,11 +61,11 @@ def build_password_reset_email(user, reset_url):
         "user": user,
         "reset_url": reset_url,
         "support_email": current_app.config["SUPPORT_EMAIL"],
-        "app_name": "LostFound",
+        "app_name": "FoundIT @ IBBU",
         "expires_hours": 1,
     }
     return {
-        "subject": "Reset your Lost & Found password",
+        "subject": "Reset your FoundIT @ IBBU password",
         "body_text": render_template("emails/password_reset.txt", **context),
         "body_html": render_template("emails/password_reset.html", **context),
     }
@@ -75,6 +75,29 @@ def send_password_reset_email(user, reset_url):
     message = build_password_reset_email(user, reset_url)
     return send_email(
         to_email=user.email,
+        subject=message["subject"],
+        body_text=message["body_text"],
+        body_html=message["body_html"],
+    )
+
+
+def build_workspace_invite_email(invite, accept_url):
+    context = {
+        "invite": invite,
+        "accept_url": accept_url,
+        "app_name": "FoundIT @ IBBU",
+    }
+    return {
+        "subject": f"You're invited to {invite.organization.name}",
+        "body_text": render_template("emails/workspace_invite.txt", **context),
+        "body_html": render_template("emails/workspace_invite.html", **context),
+    }
+
+
+def send_workspace_invite_email(invite, accept_url):
+    message = build_workspace_invite_email(invite, accept_url)
+    return send_email(
+        to_email=invite.email,
         subject=message["subject"],
         body_text=message["body_text"],
         body_html=message["body_html"],

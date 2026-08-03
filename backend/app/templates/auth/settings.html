@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+{% block title %}Account Settings | FoundIT @ IBBU{% endblock %}
+{% block content %}
+<section class="page-header">
+  <div>
+    <span class="eyebrow">Account</span>
+    <h1>Settings center</h1>
+    <p class="page-subtitle">Update your profile and security settings.</p>
+  </div>
+</section>
+
+<section class="settings-grid">
+  <article class="saas-card settings-card">
+    <div class="section-head">
+      <div>
+        <span class="section-kicker">Profile</span>
+        <h2>Personal preferences</h2>
+      </div>
+    </div>
+    <form method="post" class="form-grid-form" data-loading-form="true">
+      {{ profile_form.hidden_tag() }}
+      <input type="hidden" name="form_type" value="profile">
+      <div class="form-grid two-up">
+        <label class="field">
+          <span>{{ profile_form.full_name.label.text }}</span>
+          {{ profile_form.full_name(class="form-control") }}
+          {% if profile_form.full_name.errors %}<div class="field-error">{{ profile_form.full_name.errors[0] }}</div>{% endif %}
+        </label>
+        <label class="field">
+          <span>{{ profile_form.email.label.text }}</span>
+          {{ profile_form.email(class="form-control") }}
+          {% if profile_form.email.errors %}<div class="field-error">{{ profile_form.email.errors[0] }}</div>{% endif %}
+        </label>
+      </div>
+      <div class="form-grid two-up">
+        <label class="field">
+          <span>{{ profile_form.theme_preference.label.text }}</span>
+          {{ profile_form.theme_preference(class="form-select") }}
+        </label>
+        <div class="settings-summary">
+          <div class="summary-chip">Workspace: {{ current_workspace.name }}</div>
+          <div class="summary-chip">Role: {{ current_user.role.value|title }}</div>
+        </div>
+      </div>
+      <div class="settings-toggles">
+        <label class="setting-row">
+          {{ profile_form.email_notifications_enabled() }}
+          <span>
+            <strong>{{ profile_form.email_notifications_enabled.label.text }}</strong>
+            <small>Receive account emails.</small>
+          </span>
+        </label>
+        <label class="setting-row">
+          {{ profile_form.claim_notifications_enabled() }}
+          <span>
+            <strong>{{ profile_form.claim_notifications_enabled.label.text }}</strong>
+            <small>Get claim emails.</small>
+          </span>
+        </label>
+        <label class="setting-row">
+          {{ profile_form.match_notifications_enabled() }}
+          <span>
+            <strong>{{ profile_form.match_notifications_enabled.label.text }}</strong>
+            <small>Get item match alerts.</small>
+          </span>
+        </label>
+      </div>
+      <div class="form-actions">
+        {{ profile_form.submit(class="btn btn-primary") }}
+      </div>
+    </form>
+  </article>
+
+  <article class="saas-card settings-card">
+    <div class="section-head">
+      <div>
+        <span class="section-kicker">Security</span>
+        <h2>Change password</h2>
+      </div>
+    </div>
+    <form method="post" class="form-grid-form" data-loading-form="true">
+      {{ security_form.hidden_tag() }}
+      <input type="hidden" name="form_type" value="security">
+      <label class="field">
+        <span>{{ security_form.current_password.label.text }}</span>
+        {{ security_form.current_password(class="form-control") }}
+        {% if security_form.current_password.errors %}<div class="field-error">{{ security_form.current_password.errors[0] }}</div>{% endif %}
+      </label>
+      <label class="field">
+        <span>{{ security_form.new_password.label.text }}</span>
+        {{ security_form.new_password(class="form-control") }}
+        {% if security_form.new_password.errors %}<div class="field-error">{{ security_form.new_password.errors[0] }}</div>{% endif %}
+      </label>
+      <label class="field">
+        <span>{{ security_form.confirm_new_password.label.text }}</span>
+        {{ security_form.confirm_new_password(class="form-control") }}
+        {% if security_form.confirm_new_password.errors %}<div class="field-error">{{ security_form.confirm_new_password.errors[0] }}</div>{% endif %}
+      </label>
+      <div class="settings-note">Password changes are recorded.</div>
+      <div class="form-actions">
+        {{ security_form.submit(class="btn btn-secondary") }}
+      </div>
+    </form>
+  </article>
+</section>
+
+<script>
+  (function () {
+    const preference = {{ current_user.theme_preference|tojson }};
+    if (preference === "system") {
+      localStorage.removeItem("lf-theme");
+    } else if (preference) {
+      localStorage.setItem("lf-theme", preference);
+    }
+  })();
+</script>
+{% endblock %}

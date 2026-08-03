@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% block title %}Audit Logs | FoundIT @ IBBU{% endblock %}
+{% block content %}
+<section class="page-header">
+  <div>
+    <span class="eyebrow">Admin</span>
+    <h1>Audit logs</h1>
+    <p class="page-subtitle">Review changes and history.</p>
+  </div>
+</section>
+
+<section class="saas-card">
+  <form method="get" class="filter-bar audit-filter-bar">
+    <label class="field">
+      <span>Action</span>
+      <select class="form-select" name="action">
+        <option value="">All actions</option>
+        {% for option in actions %}
+          <option value="{{ option }}" {% if current_filters.action == option %}selected{% endif %}>{{ option.replace('_', ' ')|title }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label class="field">
+      <span>Entity</span>
+      <select class="form-select" name="entity_type">
+        <option value="">All entities</option>
+        {% for option in entity_types %}
+          <option value="{{ option }}" {% if current_filters.entity_type == option %}selected{% endif %}>{{ option.replace('_', ' ')|title }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label class="field">
+      <span>Actor</span>
+      <input class="form-control" type="search" name="actor" value="{{ current_filters.actor }}" placeholder="Search actor">
+    </label>
+    <div class="form-actions">
+      <button class="btn btn-primary" type="submit">Filter</button>
+      <a class="btn btn-ghost" href="{{ url_for('admin.audit_logs') }}">Reset</a>
+    </div>
+  </form>
+</section>
+
+<section class="saas-card">
+  {% if entries %}
+    <div class="table-responsive">
+      <table class="table data-table align-middle">
+        <thead>
+          <tr>
+            <th>When</th>
+            <th>Actor</th>
+            <th>Action</th>
+            <th>Entity</th>
+            <th>Details</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for entry in entries %}
+            <tr>
+              <td>{{ entry.created_at.strftime('%b %d, %Y %H:%M') }}</td>
+              <td>
+                <div class="table-title">
+                  <strong>{{ entry.actor.full_name if entry.actor else 'System' }}</strong>
+                  <span>{{ entry.ip_address or 'Unknown IP' }}</span>
+                </div>
+              </td>
+              <td><span class="role-pill">{{ entry.action.replace('_', ' ')|title }}</span></td>
+              <td>
+                <div class="table-title">
+                  <strong>{{ entry.entity_type.replace('_', ' ')|title }}</strong>
+                  <span>{% if entry.entity_id %}#{{ entry.entity_id }}{% else %}No entity id{% endif %}</span>
+                </div>
+              </td>
+              <td>
+                <details class="audit-details">
+                  <summary>View payload</summary>
+                  <div class="audit-detail-grid">
+                    <div>
+                      <span>Before</span>
+                      <pre>{{ entry.before_data | tojson(indent=2) if entry.before_data else '{}' }}</pre>
+                    </div>
+                    <div>
+                      <span>After</span>
+                      <pre>{{ entry.after_data | tojson(indent=2) if entry.after_data else '{}' }}</pre>
+                    </div>
+                  </div>
+                </details>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    {% set icon = 'file-search' %}
+    {% set title = 'No audit logs found' %}
+    {% set message = 'Audit records will appear here.' %}
+    {% include 'partials/_empty_state.html' %}
+  {% endif %}
+</section>
+{% endblock %}

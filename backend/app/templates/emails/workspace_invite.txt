@@ -1,0 +1,8 @@
+You're invited to join {{ invite.organization.name }} on {{ app_name }}.
+
+Email: {{ invite.email }}
+Role: {{ invite.role|title }}
+Expires: {{ invite.expires_at.strftime('%b %d, %Y %H:%M') }}
+
+Accept the invite here:
+{{ accept_url }}

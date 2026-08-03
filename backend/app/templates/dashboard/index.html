@@ -1,24 +1,21 @@
 {% extends 'base.html' %}
-{% block title %}Dashboard | Lost & Found{% endblock %}
+{% block title %}Dashboard | FoundIT @ IBBU{% endblock %}
 {% block content %}
-<section class="hero-panel">
+<section class="hero-panel hero-dashboard">
   <div class="hero-copy">
-    <span class="eyebrow">Dashboard</span>
-    <h1>Operate your recovery workflow like a modern SaaS team.</h1>
-    <p>Track submitted reports, scan intelligent matches, and move claim reviews forward with a calmer, faster interface.</p>
+    <span class="eyebrow">Welcome back, {{ current_user.full_name.split(' ')[0] }}</span>
+    <h1>FoundIT keeps campus recovery in one place.</h1>
+    <p>Manage lost reports, confirm matches, and return property faster.</p>
     <div class="hero-actions">
-      <a class="btn btn-primary" href="{{ url_for('items.report_lost_item') }}">Report lost item</a>
-      <a class="btn btn-secondary" href="{{ url_for('items.report_found_item') }}">Report found item</a>
+      <a class="btn btn-primary" href="{{ url_for('items.report_lost_item') }}">Report Lost Item</a>
+      <a class="btn btn-secondary" href="{{ url_for('items.report_found_item') }}">Report Found Item</a>
     </div>
   </div>
-  <div class="hero-aside">
-    <div class="saas-card spotlight-card">
-      <div class="spotlight-copy">
-        <span class="spotlight-label">Live match queue</span>
-        <strong>{{ suggested_matches|length }}</strong>
-        <p>High-confidence suggestions are ready for follow-up and claim verification.</p>
-      </div>
-      <a class="btn btn-ghost btn-sm" href="{{ url_for('items.list_found_items') }}">Review found items</a>
+  <div class="hero-aside hero-visual">
+    <div class="hero-image-overlay"></div>
+    <div class="hero-banner">
+      <span>Campus recovery workspace</span>
+      <strong>Smart campus recovery platform</strong>
     </div>
   </div>
 </section>
@@ -60,7 +57,7 @@
       <div class="section-head">
         <div>
           <span class="section-kicker">Activity intelligence</span>
-          <h2>Last 7 days of workflow movement</h2>
+          <h2>Last 7 days</h2>
         </div>
       </div>
       <div class="sparkline-grid">
@@ -119,7 +116,7 @@
           <strong>{{ workflow_health.resolution_rate }}%</strong>
         </div>
         <div class="progress-track" aria-hidden="true">
-          <div class="progress-bar-fill" style="width: {{ workflow_health.resolution_rate }}%"></div>
+          <div class="progress-bar-fill" data-progress="{{ workflow_health.resolution_rate }}"></div>
         </div>
         <div class="progress-meta">
           <span>Active reports: {{ workflow_health.active_reports }}</span>
@@ -201,7 +198,7 @@
         {% else %}
           {% set icon = 'sparkles' %}
           {% set title = 'No suggested matches yet' %}
-          {% set message = 'Once similar reports are submitted, they will appear here with confidence cues and next actions.' %}
+          {% set message = 'Similar reports will appear here.' %}
           {% include 'partials/_empty_state.html' %}
         {% endfor %}
       </div>
@@ -222,7 +219,7 @@
         {% else %}
           {% set icon = 'briefcase' %}
           {% set title = 'No lost reports yet' %}
-          {% set message = 'Lost item reports will show up here as soon as they are submitted.' %}
+          {% set message = 'Lost item reports appear here once submitted.' %}
           {% set action_href = url_for('items.report_lost_item') %}
           {% set action_label = 'Report lost item' %}
           {% include 'partials/_empty_state.html' %}
@@ -244,21 +241,21 @@
           <i data-lucide="circle-alert"></i>
           <div>
             <strong>Submit a lost report</strong>
-            <span>Create a detailed record with time, location, and photo evidence.</span>
+            <span>Record time, place, and a photo.</span>
           </div>
         </a>
         <a class="quick-action-card" href="{{ url_for('items.report_found_item') }}">
           <i data-lucide="plus-circle"></i>
           <div>
             <strong>Log a found item</strong>
-            <span>Capture new found property and trigger match suggestions automatically.</span>
+            <span>Log found property and trigger matches.</span>
           </div>
         </a>
         <a class="quick-action-card" href="{{ url_for('claims.my_claims') }}">
           <i data-lucide="clipboard-list"></i>
           <div>
             <strong>Track claims</strong>
-            <span>Monitor claim outcomes and respond to evidence requests quickly.</span>
+            <span>Track outcomes and answer requests.</span>
           </div>
         </a>
       </div>
@@ -311,7 +308,7 @@
         {% else %}
           {% set icon = 'package' %}
           {% set title = 'No found reports yet' %}
-          {% set message = 'Found item reports will appear here as soon as they are logged.' %}
+          {% set message = 'Found item reports will appear here.' %}
           {% set action_href = url_for('items.report_found_item') %}
           {% set action_label = 'Report found item' %}
           {% include 'partials/_empty_state.html' %}

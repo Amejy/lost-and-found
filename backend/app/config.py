@@ -44,6 +44,8 @@ class Config:
     SUPPORT_EMAIL = os.getenv("SUPPORT_EMAIL", SENDGRID_FROM_EMAIL)
     SENDGRID_BASE_URL = os.getenv("SENDGRID_BASE_URL", "https://api.sendgrid.com/v3")
     SENDGRID_TIMEOUT = int(os.getenv("SENDGRID_TIMEOUT", "10"))
+    WORKSPACE_SEAT_LIMIT = int(os.getenv("WORKSPACE_SEAT_LIMIT", "25"))
+    WORKSPACE_INVITE_TTL_DAYS = int(os.getenv("WORKSPACE_INVITE_TTL_DAYS", "7"))
 
 
 class DevelopmentConfig(Config):

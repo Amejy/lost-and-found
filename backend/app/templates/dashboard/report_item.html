@@ -1,11 +1,11 @@
 {% extends 'base.html' %}
-{% block title %}{% if is_edit %}Edit{% else %}Submit{% endif %} {{ item_kind|title }} Item | Lost & Found{% endblock %}
+{% block title %}{% if is_edit %}Edit{% else %}Submit{% endif %} {{ item_kind|title }} Item | FoundIT @ IBBU{% endblock %}
 {% block content %}
 <section class="page-header">
   <div>
     <span class="eyebrow">{% if is_edit %}Edit report{% else %}Submit item{% endif %}</span>
     <h1>{% if is_edit %}Update your {{ item_kind }} item record{% else %}Create a {{ item_kind }} item report{% endif %}</h1>
-    <p class="page-subtitle">Provide strong identifying details so the matching engine and review team can move faster.</p>
+    <p class="page-subtitle">Add the details that matter most.</p>
   </div>
   <div class="segmented-switch">
     <a class="segment {% if item_kind == 'lost' %}active{% endif %}" href="{{ url_for('items.report_lost_item') }}">Lost item</a>
@@ -81,14 +81,14 @@
       <h2>Make matching easier</h2>
       <ul class="check-list">
         <li><i data-lucide="check"></i>Include standout details someone else would not guess easily.</li>
-        <li><i data-lucide="check"></i>Use the most precise location you can remember.</li>
+        <li><i data-lucide="check"></i>Use the closest accurate location you remember.</li>
         <li><i data-lucide="check"></i>Add a photo when available to improve confidence during review.</li>
       </ul>
     </div>
     <div class="saas-card info-card">
-      <span class="section-kicker">Workflow note</span>
-      <h2>What happens next</h2>
-      <p>Your report becomes searchable immediately. The matching service checks category, location, date proximity, and description overlap to surface likely pairs and notify the right people.</p>
+      <span class="section-kicker">Next step</span>
+      <h2>Report goes live</h2>
+      <p>Your report is searchable right away and used for matching.</p>
     </div>
   </div>
 </section>

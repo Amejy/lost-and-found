@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Claims | Lost & Found{% endblock %}
+{% block title %}Claims | FoundIT @ IBBU{% endblock %}
 {% block content %}
 {% set ns = namespace(pending=0, approved=0, rejected=0) %}
 {% for claim in claims %}
@@ -15,8 +15,8 @@
 <section class="page-header">
   <div>
     <span class="eyebrow">Claims</span>
-    <h1>Track ownership claim progress</h1>
-    <p class="page-subtitle">See which claims are waiting for review, which were approved, and what feedback came back from admins.</p>
+    <h1>Claims</h1>
+    <p class="page-subtitle">See claim status and notes.</p>
   </div>
 </section>
 
@@ -74,7 +74,7 @@
               <td>{{ claim.created_at.strftime('%b %d, %Y %H:%M') }}</td>
               <td>{{ claim.admin_notes or 'Awaiting verification' }}</td>
               <td>
-                <a class="btn btn-ghost btn-sm" href="{{ url_for('items.view_found_item', item_id=claim.found_item.id) }}">Open item</a>
+                <a class="btn btn-ghost btn-sm" href="{{ url_for('items.view_found_item', item_id=claim.found_item.id) }}">View item</a>
               </td>
             </tr>
           {% endfor %}
@@ -84,7 +84,7 @@
   {% else %}
     {% set icon = 'clipboard-list' %}
     {% set title = 'No claims submitted yet' %}
-    {% set message = 'When you spot your item in the found queue, submit a claim and it will show up here with review updates.' %}
+    {% set message = 'Submit a claim when you spot your item.' %}
     {% set action_href = url_for('items.list_found_items') %}
     {% set action_label = 'Browse found items' %}
     {% include 'partials/_empty_state.html' %}

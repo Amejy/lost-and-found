@@ -1,11 +1,11 @@
 {% extends 'base.html' %}
-{% block title %}{{ item_kind|title }} Items | Lost & Found{% endblock %}
+{% block title %}{{ item_kind|title }} Items | FoundIT @ IBBU{% endblock %}
 {% block content %}
 <section class="page-header">
   <div>
     <span class="eyebrow">{{ item_kind|title }} items</span>
     <h1>{{ item_kind|title }} item workspace</h1>
-    <p class="page-subtitle">Browse, filter, and inspect every {{ item_kind }} item report with a cleaner, touch-friendly dashboard view.</p>
+    <p class="page-subtitle">Browse and filter {{ item_kind }} reports.</p>
   </div>
   <div class="page-actions">
     <a class="btn btn-primary" href="{% if item_kind == 'lost' %}{{ url_for('items.report_lost_item') }}{% else %}{{ url_for('items.report_found_item') }}{% endif %}">
@@ -79,7 +79,7 @@
   {% else %}
     {% set icon = 'inbox' %}
     {% set title = 'No ' ~ item_kind ~ ' items match your filters' %}
-    {% set message = 'Try widening your search, resetting the filters, or creating a new report to start the queue.' %}
+    {% set message = 'Widen your search or reset the filters.' %}
     {% set action_href = url_for('items.report_lost_item') if item_kind == 'lost' else url_for('items.report_found_item') %}
     {% set action_label = 'Create report' %}
     {% include 'partials/_empty_state.html' %}

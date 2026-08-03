@@ -63,19 +63,22 @@ def compute_match_details(lost_item, found_item):
     return round(weighted_score, 2), ", ".join(reasons)
 
 
-def get_candidate_pairs(item, item_kind):
+def get_candidate_pairs(item, item_kind, organization_id=None):
     if item_kind == "lost":
-        return db.session.get(LostItem, item.id), FoundItem.query.filter(
-            FoundItem.status.in_(MATCHABLE_ITEM_STATUSES)
-        ).all()
+        found_query = FoundItem.query.filter(FoundItem.status.in_(MATCHABLE_ITEM_STATUSES))
+        if organization_id is not None:
+            found_query = found_query.filter(FoundItem.organization_id == organization_id)
+        return db.session.get(LostItem, item.id), found_query.all()
 
-    return db.session.get(FoundItem, item.id), LostItem.query.filter(
-        LostItem.status.in_(MATCHABLE_ITEM_STATUSES)
-    ).all()
+    lost_query = LostItem.query.filter(LostItem.status.in_(MATCHABLE_ITEM_STATUSES))
+    if organization_id is not None:
+        lost_query = lost_query.filter(LostItem.organization_id == organization_id)
+    return db.session.get(FoundItem, item.id), lost_query.all()
 
 
-def refresh_matches_for_item(item, item_kind, threshold):
-    subject, candidates = get_candidate_pairs(item, item_kind)
+def refresh_matches_for_item(item, item_kind, threshold, organization_id=None):
+    organization_id = organization_id or getattr(item, "organization_id", None)
+    subject, candidates = get_candidate_pairs(item, item_kind, organization_id)
     if not subject:
         return []
 
@@ -103,6 +106,8 @@ def refresh_matches_for_item(item, item_kind, threshold):
                 score=Decimal(str(score)),
                 reasons=reasons,
             )
+            if organization_id is not None:
+                match.organization_id = organization_id
             db.session.add(match)
         else:
             match.score = Decimal(str(score))
@@ -135,9 +140,12 @@ def refresh_matches_for_item(item, item_kind, threshold):
     return updated_matches
 
 
-def active_suggested_matches_query():
-    return (
+def active_suggested_matches_query(organization_id=None):
+    query = (
         ItemMatch.query.filter_by(status=MatchStatus.SUGGESTED)
         .filter(ItemMatch.lost_item.has(LostItem.status.in_(MATCHABLE_ITEM_STATUSES)))
         .filter(ItemMatch.found_item.has(FoundItem.status.in_(MATCHABLE_ITEM_STATUSES)))
     )
+    if organization_id is not None:
+        query = query.filter(ItemMatch.organization_id == organization_id)
+    return query

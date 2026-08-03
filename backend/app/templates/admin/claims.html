@@ -1,11 +1,11 @@
 {% extends 'base.html' %}
-{% block title %}Review Claims | Lost & Found{% endblock %}
+{% block title %}Review Claims | FoundIT @ IBBU{% endblock %}
 {% block content %}
 <section class="page-header">
   <div>
     <span class="eyebrow">Admin</span>
     <h1>Claim review queue</h1>
-    <p class="page-subtitle">Inspect every submitted claim with clearer states, timestamps, and fast access to supporting records.</p>
+    <p class="page-subtitle">Inspect submitted claims and records.</p>
   </div>
 </section>
 
@@ -37,7 +37,7 @@
                 {% include 'partials/_status_badge.html' %}
               </td>
               <td>{{ claim.created_at.strftime('%b %d, %Y %H:%M') }}</td>
-              <td><a class="btn btn-secondary btn-sm" href="{{ url_for('admin.review_claim', claim_id=claim.id) }}">Open review</a></td>
+              <td><a class="btn btn-secondary btn-sm" href="{{ url_for('admin.review_claim', claim_id=claim.id) }}">View review</a></td>
             </tr>
           {% endfor %}
         </tbody>
@@ -46,7 +46,7 @@
   {% else %}
     {% set icon = 'clipboard-check' %}
     {% set title = 'No claims submitted yet' %}
-    {% set message = 'Claims will appear here as users submit ownership evidence for found items.' %}
+    {% set message = 'Claims will appear here.' %}
     {% include 'partials/_empty_state.html' %}
   {% endif %}
 </section>

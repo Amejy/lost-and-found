@@ -16,6 +16,7 @@ class Claim(db.Model):
     __tablename__ = "claims"
 
     id = db.Column(db.Integer, primary_key=True)
+    organization_id = db.Column(db.Integer, db.ForeignKey("organizations.id"), index=True)
     claimant_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
     found_item_id = db.Column(db.Integer, db.ForeignKey("found_items.id"), nullable=False, index=True)
     lost_item_id = db.Column(db.Integer, db.ForeignKey("lost_items.id"), index=True)
@@ -39,6 +40,7 @@ class Claim(db.Model):
     reviewed_by = db.relationship("User", foreign_keys=[reviewed_by_id], back_populates="reviewed_claims")
     found_item = db.relationship("FoundItem", back_populates="claims")
     lost_item = db.relationship("LostItem", back_populates="claims")
+    organization = db.relationship("Organization", back_populates="claims")
 
     __table_args__ = (
         CheckConstraint("length(proof_text) >= 10", name="ck_claims_proof_length"),

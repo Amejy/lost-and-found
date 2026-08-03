@@ -5,6 +5,7 @@ from backend.app.models.notification import Notification, NotificationType
 def create_notification(user, title, message, notification_type=NotificationType.SYSTEM, related_url=None):
     notification = Notification(
         user=user,
+        organization=user.organization,
         title=title,
         message=message,
         type=notification_type,

@@ -1,13 +1,14 @@
 {% extends 'base.html' %}
-{% block title %}Admin Overview | Lost & Found{% endblock %}
+{% block title %}Admin Overview | FoundIT @ IBBU{% endblock %}
 {% block content %}
 <section class="page-header">
   <div>
     <span class="eyebrow">Admin</span>
-    <h1>Operational command center</h1>
-    <p class="page-subtitle">Monitor platform health, review pending ownership claims, and keep the item recovery pipeline moving.</p>
+    <h1>Admin overview</h1>
+    <p class="page-subtitle">Monitor health and pending claims.</p>
   </div>
   <div class="page-actions">
+    <a class="btn btn-secondary" href="{{ url_for('admin.analytics') }}">Open analytics</a>
     <a class="btn btn-secondary" href="{{ url_for('admin.claims') }}">Review claims</a>
     <a class="btn btn-primary" href="{{ url_for('admin.items') }}">Manage items</a>
   </div>
@@ -113,7 +114,7 @@
       {% else %}
         {% set icon = 'clipboard-check' %}
         {% set title = 'No pending claims' %}
-        {% set message = 'The review queue is clear right now. New claims will appear here automatically.' %}
+        {% set message = 'New claims will appear here.' %}
         {% include 'partials/_empty_state.html' %}
       {% endif %}
     </div>
@@ -138,7 +139,7 @@
       {% else %}
         {% set icon = 'users' %}
         {% set title = 'No users found' %}
-        {% set message = 'User accounts will appear here as new registrations come in.' %}
+        {% set message = 'New accounts will appear here.' %}
         {% include 'partials/_empty_state.html' %}
       {% endfor %}
     </div>

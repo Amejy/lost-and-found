@@ -1,11 +1,11 @@
 {% extends 'base.html' %}
-{% block title %}Submit Claim | Lost & Found{% endblock %}
+{% block title %}Submit Claim | FoundIT @ IBBU{% endblock %}
 {% block content %}
 <section class="page-header">
   <div>
     <span class="eyebrow">Ownership claim</span>
     <h1>Claim “{{ found_item.title }}”</h1>
-    <p class="page-subtitle">Use the visual picker below to show which report or image matches the item you believe is yours, then send the claim directly to admin.</p>
+    <p class="page-subtitle">Pick the best match and submit your claim.</p>
   </div>
 </section>
 
@@ -53,7 +53,7 @@
               <h2>Choose the item that is yours</h2>
             </div>
           </div>
-          <p class="selection-helper">Click the report card that best matches your item. If you never created a lost report, choose “No related report” and upload your own image below.</p>
+          <p class="selection-helper">Choose the closest match. If you never filed a lost report, use “No related lost report” and attach proof below.</p>
           <div class="claim-choice-grid" data-claim-picker>
             <button
               type="button"
@@ -66,7 +66,7 @@
               </div>
               <div class="claim-choice-copy">
                 <strong>No related lost report</strong>
-                <span>I want to claim using my proof text and image only.</span>
+                <span>Use proof text and an image only.</span>
               </div>
             </button>
 
@@ -101,7 +101,7 @@
           {% if not user_lost_items %}
             <div class="inline-note">
               <i data-lucide="info"></i>
-              <span>You do not have any lost reports yet. You can still claim this item by uploading your own supporting image and detailed proof.</span>
+              <span>You can still submit a claim with your own proof.</span>
             </div>
           {% endif %}
         </div>

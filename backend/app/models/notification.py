@@ -16,6 +16,7 @@ class Notification(db.Model):
     __tablename__ = "notifications"
 
     id = db.Column(db.Integer, primary_key=True)
+    organization_id = db.Column(db.Integer, db.ForeignKey("organizations.id"), index=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
     title = db.Column(db.String(150), nullable=False)
     message = db.Column(db.Text, nullable=False)
@@ -27,3 +28,4 @@ class Notification(db.Model):
     )
 
     user = db.relationship("User", back_populates="notifications")
+    organization = db.relationship("Organization", back_populates="notifications")

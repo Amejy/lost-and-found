@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: lost-and-found
+    name: foundit-ibbu
     env: python
     plan: free
     healthCheckPath: /healthz

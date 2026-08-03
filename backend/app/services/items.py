@@ -38,27 +38,41 @@ def _resolve_item_status(item):
         return ItemStatus.ARCHIVED
 
     if isinstance(item, FoundItem):
-        if Claim.query.filter_by(found_item_id=item.id, status=ClaimStatus.APPROVED).first():
+        if Claim.query.filter_by(
+            found_item_id=item.id,
+            status=ClaimStatus.APPROVED,
+            organization_id=item.organization_id,
+        ).first():
             return ItemStatus.RESOLVED
-        if Claim.query.filter_by(found_item_id=item.id, status=ClaimStatus.PENDING).first():
+        if Claim.query.filter_by(
+            found_item_id=item.id,
+            status=ClaimStatus.PENDING,
+            organization_id=item.organization_id,
+        ).first():
             return ItemStatus.CLAIMED
         has_live_match = (
             ItemMatch.query.filter(
                 ItemMatch.found_item_id == item.id,
                 ItemMatch.status == MatchStatus.SUGGESTED,
+                ItemMatch.organization_id == item.organization_id,
                 ItemMatch.lost_item.has(LostItem.status.in_(MATCHABLE_ITEM_STATUSES)),
             ).first()
             is not None
         )
         return ItemStatus.MATCHED if has_live_match else ItemStatus.OPEN
 
-    if Claim.query.filter_by(lost_item_id=item.id, status=ClaimStatus.APPROVED).first():
+    if Claim.query.filter_by(
+        lost_item_id=item.id,
+        status=ClaimStatus.APPROVED,
+        organization_id=item.organization_id,
+    ).first():
         return ItemStatus.RESOLVED
 
     has_live_match = (
         ItemMatch.query.filter(
             ItemMatch.lost_item_id == item.id,
             ItemMatch.status == MatchStatus.SUGGESTED,
+            ItemMatch.organization_id == item.organization_id,
             ItemMatch.found_item.has(FoundItem.status.in_(MATCHABLE_ITEM_STATUSES)),
         ).first()
         is not None
@@ -96,7 +110,10 @@ def _cleanup_dead_link_notifications(item, linked_claims):
     if not related_urls:
         return 0
 
-    notifications = Notification.query.filter(Notification.related_url.in_(related_urls)).all()
+    notifications = Notification.query.filter(
+        Notification.related_url.in_(related_urls),
+        Notification.organization_id == item.organization_id,
+    ).all()
     for notification in notifications:
         db.session.delete(notification)
     return len(notifications)
