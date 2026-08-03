@@ -2,6 +2,8 @@ import os
 from pathlib import Path
 
 from flask import Flask, redirect, render_template, request, send_from_directory, url_for
+from sqlalchemy import create_engine
+from sqlalchemy.exc import SQLAlchemyError
 
 from backend.app.config import config_by_name
 from backend.app.extensions import csrf, db, login_manager
@@ -45,6 +47,27 @@ def initialize_database(app):
         db.create_all()
 
 
+def _resolve_database_uri(app):
+    database_uri = app.config["SQLALCHEMY_DATABASE_URI"]
+    if not database_uri or database_uri.startswith("sqlite://"):
+        return database_uri
+
+    try:
+        test_engine = create_engine(database_uri, pool_pre_ping=True)
+        with test_engine.connect():
+            pass
+        return database_uri
+    except SQLAlchemyError as exc:
+        if app.config.get("ALLOW_SQLITE_FALLBACK", True):
+            fallback_uri = f"sqlite:///{Path(app.config['UPLOAD_FOLDER']).resolve().parent / 'database' / 'lost_found.db'}"
+            app.logger.warning(
+                "Database connection failed during startup, falling back to SQLite: %s",
+                exc,
+            )
+            return fallback_uri
+        raise
+
+
 def initialize_admin_account(app):
     admin_email = os.getenv("ADMIN_EMAIL", "admin@lostfound.local").lower().strip()
     admin_password = os.getenv("ADMIN_PASSWORD", "Admin12345!")
@@ -83,6 +106,8 @@ def create_app(config_name=None, test_config=None):
         app.config.update(test_config)
 
     Path(app.config["UPLOAD_FOLDER"]).mkdir(parents=True, exist_ok=True)
+
+    app.config["SQLALCHEMY_DATABASE_URI"] = _resolve_database_uri(app)
 
     db.init_app(app)
     login_manager.init_app(app)
