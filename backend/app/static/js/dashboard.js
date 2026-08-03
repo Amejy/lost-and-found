@@ -124,6 +124,24 @@ const initializeClaimPicker = () => {
   });
 };
 
+const initializePasswordToggles = () => {
+  document.querySelectorAll(".password-row").forEach((row) => {
+    const input = row.querySelector("input");
+    const button = row.querySelector(".toggle-password");
+
+    if (!input || !button) {
+      return;
+    }
+
+    button.addEventListener("click", () => {
+      const showPassword = input.type === "password";
+      input.type = showPassword ? "text" : "password";
+      button.textContent = showPassword ? "Hide" : "Show";
+      button.setAttribute("aria-pressed", String(showPassword));
+    });
+  });
+};
+
 const initializeSidebar = () => {
   const body = document.body;
   const backdrop = document.querySelector("[data-sidebar-backdrop]");
@@ -261,6 +279,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initializeCounters();
   initializeSparklines();
   initializeClaimPicker();
+  initializePasswordToggles();
 
   if (window.lucide) {
     window.lucide.createIcons();

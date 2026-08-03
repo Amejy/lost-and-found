@@ -1,6 +1,6 @@
 from flask import Blueprint, abort, current_app, g, jsonify, request
 from flask_login import current_user, login_user, logout_user
-from sqlalchemy import or_
+from sqlalchemy import func, or_
 from sqlalchemy.exc import SQLAlchemyError
 
 from backend.app.decorators import api_admin_required, api_login_required, owner_or_admin
@@ -96,6 +96,11 @@ def _workspace_or_404(instance, workspace):
     return instance
 
 
+def find_user_by_email(email):
+    normalized_email = sanitize_text(email).lower()
+    return User.query.filter(func.lower(User.email) == normalized_email).first()
+
+
 @api_bp.route("/auth/register", methods=["POST"])
 def api_register():
     payload = request.get_json(silent=True) or {}
@@ -105,7 +110,7 @@ def api_register():
         return jsonify({"error": str(exc)}), 400
 
     email = sanitize_text(payload["email"]).lower()
-    if User.query.filter_by(email=email).first():
+    if find_user_by_email(email):
         return jsonify({"error": "User already exists."}), 409
 
     workspace = _workspace()
@@ -132,7 +137,7 @@ def api_login():
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
 
-    user = User.query.filter_by(email=sanitize_text(payload["email"]).lower()).first()
+    user = find_user_by_email(payload["email"])
     if not user or not user.check_password(payload["password"]):
         return jsonify({"error": "Invalid email or password."}), 401
 

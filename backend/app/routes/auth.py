@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required, login_user, logout_user
+from sqlalchemy import func
 
 from backend.app.extensions import db
 from backend.app.forms.auth import (
@@ -36,6 +37,11 @@ def build_workspace_slug(name, custom_slug=""):
     return slugify_workspace_name(name)
 
 
+def find_user_by_email(email):
+    normalized_email = (email or "").strip().lower()
+    return User.query.filter(func.lower(User.email) == normalized_email).first()
+
+
 @auth_bp.route("/register", methods=["GET", "POST"])
 def register():
     if current_user.is_authenticated:
@@ -50,7 +56,7 @@ def register():
 
     if form.validate_on_submit():
         email = form.email.data.lower().strip()
-        existing_user = User.query.filter_by(email=email).first()
+        existing_user = find_user_by_email(email)
         if existing_user:
             if invite:
                 flash("An account with that email already exists. Sign in to accept the invite.", "warning")
@@ -122,7 +128,7 @@ def login():
 
     form = LoginForm()
     if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data.lower().strip()).first()
+        user = find_user_by_email(form.email.data)
         if not user or not user.check_password(form.password.data):
             flash("Invalid email or password.", "danger")
             return render_template("auth/login.html", form=form)
@@ -153,7 +159,7 @@ def forgot_password():
     reset_email = None
 
     if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data.lower().strip()).first()
+        user = find_user_by_email(form.email.data)
         if user:
             reset_url = url_for("auth.reset_password", token=user.generate_reset_token(), _external=True)
             reset_email = user.email
@@ -276,7 +282,7 @@ def settings():
 
         if form_type == "profile" and profile_form.validate():
             email = profile_form.email.data.lower().strip()
-            email_owner = User.query.filter(User.email == email, User.id != current_user.id).first()
+            email_owner = User.query.filter(func.lower(User.email) == email, User.id != current_user.id).first()
             if email_owner:
                 profile_form.email.errors.append("That email is already in use.")
             else:

@@ -78,6 +78,25 @@ class FoundItUserFlowTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"Welcome back", response.data)
 
+    def test_login_accepts_mixed_case_email_addresses(self):
+        with self.app.app_context():
+            user = User(
+                full_name="Case User",
+                email="Case.User@Example.com",
+                role=UserRole.USER,
+            )
+            user.set_password("StrongPass123!")
+            db.session.add(user)
+            db.session.commit()
+
+        response = self.client.post(
+            "/login",
+            data={"email": "case.user@example.com", "password": "StrongPass123!"},
+            follow_redirects=True,
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"Welcome back", response.data)
+
     def logout(self):
         response = self.client.post("/logout", follow_redirects=True)
         self.assertEqual(response.status_code, 200)
@@ -132,7 +151,7 @@ class FoundItUserFlowTestCase(unittest.TestCase):
         self.login("owner@example.com")
         claim_page = self.client.get(f"/found/{found_item_id}/claim")
         self.assertEqual(claim_page.status_code, 200)
-        self.assertIn(b"Use the visual picker below", claim_page.data)
+        self.assertIn(b"Pick the best match and submit your claim.", claim_page.data)
 
         claim_response = self.client.post(
             f"/found/{found_item_id}/claim",
@@ -144,16 +163,16 @@ class FoundItUserFlowTestCase(unittest.TestCase):
         )
         self.assertEqual(claim_response.status_code, 200)
         self.assertIn(b"Claim submitted. An admin will review it shortly.", claim_response.data)
-        self.assertIn(b"Track ownership claim progress", claim_response.data)
+        self.assertIn(b"Awaiting verification", claim_response.data)
         self.logout()
 
         self.login("admin@lostfound.local", "Admin12345!")
         admin_home = self.client.get("/", follow_redirects=True)
         self.assertEqual(admin_home.status_code, 200)
-        self.assertIn(b"Operational command center", admin_home.data)
+        self.assertIn(b"Admin overview", admin_home.data)
         admin_dashboard_redirect = self.client.get("/dashboard", follow_redirects=True)
         self.assertEqual(admin_dashboard_redirect.status_code, 200)
-        self.assertIn(b"Operational command center", admin_dashboard_redirect.data)
+        self.assertIn(b"Admin overview", admin_dashboard_redirect.data)
         with self.app.app_context():
             claim = Claim.query.one()
             self.assertEqual(claim.status, ClaimStatus.PENDING)
@@ -500,7 +519,7 @@ class FoundItUserFlowTestCase(unittest.TestCase):
         self.login("plain@example.com")
         response = self.client.get("/", follow_redirects=True)
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b"Operate your recovery workflow like a modern SaaS team.", response.data)
+        self.assertIn(b"FoundIT keeps campus recovery in one place.", response.data)
 
     def test_admin_cannot_demote_own_account(self):
         with self.app.app_context():

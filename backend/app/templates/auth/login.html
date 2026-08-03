@@ -33,7 +33,7 @@
         <span>{{ form.password.label.text }}</span>
         <div class="password-row">
           {{ form.password(class="form-control", placeholder="Enter your password") }}
-          <button type="button" class="btn btn-ghost toggle-password">Show</button>
+          <button type="button" class="btn btn-ghost toggle-password" aria-pressed="false" aria-label="Toggle password visibility">Show</button>
         </div>
         {% if form.password.errors %}
           <div class="field-error">{{ form.password.errors[0] }}</div>
