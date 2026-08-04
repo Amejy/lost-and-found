@@ -96,9 +96,9 @@ def ensure_tenant_schema():
     user_extra_columns = {
         "users": {
             "theme_preference": "theme_preference VARCHAR(20) DEFAULT 'system'",
-            "email_notifications_enabled": "email_notifications_enabled BOOLEAN DEFAULT 1",
-            "claim_notifications_enabled": "claim_notifications_enabled BOOLEAN DEFAULT 1",
-            "match_notifications_enabled": "match_notifications_enabled BOOLEAN DEFAULT 1",
+            "email_notifications_enabled": "email_notifications_enabled BOOLEAN DEFAULT TRUE",
+            "claim_notifications_enabled": "claim_notifications_enabled BOOLEAN DEFAULT TRUE",
+            "match_notifications_enabled": "match_notifications_enabled BOOLEAN DEFAULT TRUE",
         }
     }
 
