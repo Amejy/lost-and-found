@@ -160,10 +160,6 @@ background: color-mix(in srgb, var(--sidebar-bg) 92%, transparent);
   display: none;
 }
 
-.auth-page {
-  overflow: hidden;
-}
-
 @supports (-webkit-overflow-scrolling: touch) {
   .sidebar {
     -webkit-overflow-scrolling: touch;
