@@ -1392,12 +1392,16 @@ background: linear-gradient(145deg, color-mix(in srgb, var(--primary-soft) 62%, 
     position: fixed;
     inset: 0.75rem auto 0.75rem 0.75rem;
     width: min(84vw, 320px);
+    max-height: calc(100dvh - 1.5rem);
     transform: translateX(-102%);
     z-index: 60;
+    display: flex;
+    flex-direction: column;
     border-right: 1px solid var(--sidebar-border);
     border-top-right-radius: var(--radius-xl);
     border-bottom-right-radius: var(--radius-xl);
     box-shadow: var(--shadow-lg);
+    overflow: hidden;
   }
 
   body.sidebar-open .sidebar {
@@ -1406,6 +1410,26 @@ background: linear-gradient(145deg, color-mix(in srgb, var(--primary-soft) 62%, 
 
   .sidebar-header {
     align-items: center;
+  }
+
+  .sidebar-nav {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding-right: 0.15rem;
+  }
+
+  .sidebar-footer {
+    position: sticky;
+    bottom: 0;
+    margin-top: 0;
+    padding-top: 1rem;
+    padding-bottom: 0.25rem;
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--sidebar-bg) 10%, transparent),
+      var(--sidebar-bg) 35%
+    );
   }
 
   .sidebar-close {
@@ -1488,21 +1512,24 @@ background: linear-gradient(145deg, color-mix(in srgb, var(--primary-soft) 62%, 
 
   .auth-shell {
     grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .auth-logo {
+    margin-bottom: 0.15rem;
   }
 
   .auth-showcase {
-    padding: 1rem;
-    border-radius: var(--radius-lg);
-    background: var(--surface-muted);
-    border: 1px solid var(--line);
+    display: none;
   }
 
   .hero-login {
-    border-radius: var(--radius-md);
+    display: none;
   }
 
   .auth-card {
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-lg);
+    padding: 1rem;
   }
 
   .password-row {
@@ -1516,6 +1543,7 @@ background: linear-gradient(145deg, color-mix(in srgb, var(--primary-soft) 62%, 
   .sidebar {
     inset: 0.5rem auto 0.5rem 0.5rem;
     width: min(88vw, 300px);
+    max-height: calc(100dvh - 1rem);
   }
 
   .sidebar-header {
