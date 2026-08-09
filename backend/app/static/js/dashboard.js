@@ -1,21 +1,5 @@
 const root = document.documentElement;
 
-const applyTheme = (theme) => {
-  root.setAttribute("data-theme", theme);
-  localStorage.setItem("lf-theme", theme);
-};
-
-const toggleTheme = () => {
-  const currentTheme = root.getAttribute("data-theme") || "light";
-  applyTheme(currentTheme === "dark" ? "light" : "dark");
-};
-
-const initializeThemeToggle = () => {
-  document.querySelectorAll("[data-theme-toggle]").forEach((button) => {
-    button.addEventListener("click", toggleTheme);
-  });
-};
-
 const animateCounter = (element) => {
   const target = Number(element.dataset.counter || "0");
   if (Number.isNaN(target)) {
@@ -154,6 +138,9 @@ const initializeSidebar = () => {
   openButtons.forEach((button) => button.addEventListener("click", openSidebar));
   closeButtons.forEach((button) => button.addEventListener("click", closeSidebar));
   backdrop?.addEventListener("click", closeSidebar);
+  document.querySelectorAll(".sidebar a").forEach((link) => {
+    link.addEventListener("click", closeSidebar);
+  });
 
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
@@ -272,7 +259,6 @@ const initializeForms = () => {
 };
 
 document.addEventListener("DOMContentLoaded", () => {
-  initializeThemeToggle();
   initializeSidebar();
   initializeFlashes();
   initializeForms();

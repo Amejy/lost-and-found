@@ -143,43 +143,7 @@ def inject_globals():
 def index():
     if current_user.is_authenticated:
         return redirect(url_for(dashboard_endpoint_for(current_user)))
-
-    current_workspace = get_current_organization()
-    stats = {
-        "lost_items": scope_query(
-            LostItem.query.filter(LostItem.status.in_(ACTIVE_ITEM_STATUSES[:-1])),
-            LostItem,
-            current_workspace.id,
-        ).count(),
-        "found_items": scope_query(
-            FoundItem.query.filter(FoundItem.status.in_(ACTIVE_ITEM_STATUSES[:-1])),
-            FoundItem,
-            current_workspace.id,
-        ).count(),
-        "claims": scope_query(Claim.query, Claim, current_workspace.id).count(),
-        "matches": active_suggested_matches_query(current_workspace.id).count(),
-    }
-    recent_lost = (
-        scope_query(
-            LostItem.query.filter(LostItem.status.in_(ACTIVE_ITEM_STATUSES[:-1])),
-            LostItem,
-            current_workspace.id,
-        )
-        .order_by(LostItem.created_at.desc())
-        .limit(3)
-        .all()
-    )
-    recent_found = (
-        scope_query(
-            FoundItem.query.filter(FoundItem.status.in_(ACTIVE_ITEM_STATUSES[:-1])),
-            FoundItem,
-            current_workspace.id,
-        )
-        .order_by(FoundItem.created_at.desc())
-        .limit(3)
-        .all()
-    )
-    return render_template("dashboard/landing.html", stats=stats, recent_lost=recent_lost, recent_found=recent_found)
+    return redirect(url_for("auth.register"))
 
 
 @main_bp.route("/dashboard")
@@ -434,8 +398,8 @@ def help_center():
             "answer": "Users with review or admin permissions can review claims from the queue.",
         },
         {
-            "question": "Can I change my theme?",
-            "answer": "Yes. Open Account Settings and choose system, light, or dark mode.",
+            "question": "How do I manage account settings?",
+            "answer": "Open Account Settings to update your profile, password, and notification preferences.",
         },
     ]
     return render_template("dashboard/help.html", form=form, faq_items=faq_items)

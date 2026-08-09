@@ -267,7 +267,6 @@ def accept_invite(token):
 @login_required
 def settings():
     profile_form = ProfileSettingsForm(obj=current_user)
-    profile_form.theme_preference.data = current_user.theme_preference or "system"
     profile_form.email_notifications_enabled.data = current_user.email_notifications_enabled
     profile_form.claim_notifications_enabled.data = current_user.claim_notifications_enabled
     profile_form.match_notifications_enabled.data = current_user.match_notifications_enabled
@@ -289,14 +288,12 @@ def settings():
                 before_data = {
                     "full_name": current_user.full_name,
                     "email": current_user.email,
-                    "theme_preference": current_user.theme_preference,
                     "email_notifications_enabled": current_user.email_notifications_enabled,
                     "claim_notifications_enabled": current_user.claim_notifications_enabled,
                     "match_notifications_enabled": current_user.match_notifications_enabled,
                 }
                 current_user.full_name = profile_form.full_name.data.strip()
                 current_user.email = email
-                current_user.theme_preference = profile_form.theme_preference.data
                 current_user.email_notifications_enabled = bool(profile_form.email_notifications_enabled.data)
                 current_user.claim_notifications_enabled = bool(profile_form.claim_notifications_enabled.data)
                 current_user.match_notifications_enabled = bool(profile_form.match_notifications_enabled.data)
@@ -308,7 +305,6 @@ def settings():
                     after_data={
                         "full_name": current_user.full_name,
                         "email": current_user.email,
-                        "theme_preference": current_user.theme_preference,
                         "email_notifications_enabled": current_user.email_notifications_enabled,
                         "claim_notifications_enabled": current_user.claim_notifications_enabled,
                         "match_notifications_enabled": current_user.match_notifications_enabled,

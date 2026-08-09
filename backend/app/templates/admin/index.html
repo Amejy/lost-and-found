@@ -119,30 +119,5 @@
       {% endif %}
     </div>
   </div>
-  <div class="content-stack">
-    <div class="saas-card">
-      <div class="section-head">
-        <div>
-          <span class="section-kicker">Recent users</span>
-          <h2>Newest accounts</h2>
-        </div>
-      </div>
-      {% for user in recent_users %}
-        <div class="list-row">
-          <div class="list-avatar">{{ user.full_name[0]|upper }}</div>
-          <div class="list-copy">
-            <strong>{{ user.full_name }}</strong>
-            <span>{{ user.email }}</span>
-          </div>
-          <span class="role-pill">{{ user.role.value|title }}</span>
-        </div>
-      {% else %}
-        {% set icon = 'users' %}
-        {% set title = 'No users found' %}
-        {% set message = 'New accounts will appear here.' %}
-        {% include 'partials/_empty_state.html' %}
-      {% endfor %}
-    </div>
-  </div>
 </section>
 {% endblock %}

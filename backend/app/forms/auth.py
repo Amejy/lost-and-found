@@ -50,11 +50,6 @@ class PasswordResetForm(FlaskForm):
 class ProfileSettingsForm(FlaskForm):
     full_name = StringField("Full name", validators=[DataRequired(), Length(min=3, max=120)])
     email = EmailField("Email", validators=[DataRequired(), IBBUEmail(), Length(min=3, max=255)])
-    theme_preference = SelectField(
-        "Theme preference",
-        choices=[("system", "System"), ("light", "Light"), ("dark", "Dark")],
-        validators=[DataRequired()],
-    )
     email_notifications_enabled = BooleanField("Enable email notifications")
     claim_notifications_enabled = BooleanField("Claim updates by email")
     match_notifications_enabled = BooleanField("Match alerts by email")

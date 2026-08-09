@@ -33,10 +33,6 @@
         </label>
       </div>
       <div class="form-grid two-up">
-        <label class="field">
-          <span>{{ profile_form.theme_preference.label.text }}</span>
-          {{ profile_form.theme_preference(class="form-select") }}
-        </label>
         <div class="settings-summary">
           <div class="summary-chip">Workspace: {{ current_workspace.name }}</div>
           <div class="summary-chip">Role: {{ current_user.role.value|title }}</div>
@@ -103,15 +99,4 @@
     </form>
   </article>
 </section>
-
-<script>
-  (function () {
-    const preference = {{ current_user.theme_preference|tojson }};
-    if (preference === "system") {
-      localStorage.removeItem("lf-theme");
-    } else if (preference) {
-      localStorage.setItem("lf-theme", preference);
-    }
-  })();
-</script>
 {% endblock %}

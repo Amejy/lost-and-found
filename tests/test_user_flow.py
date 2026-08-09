@@ -323,12 +323,11 @@ class FoundItUserFlowTestCase(unittest.TestCase):
             db.session.add_all([live_match, archived_match])
             db.session.commit()
 
-        landing = self.client.get("/")
+        landing = self.client.get("/", follow_redirects=True)
         self.assertEqual(landing.status_code, 200)
-        self.assertIn(b"Live Laptop", landing.data)
+        self.assertIn(b"Create your account", landing.data)
+        self.assertNotIn(b"Live Laptop", landing.data)
         self.assertNotIn(b"Archived Wallet", landing.data)
-        self.assertIn(b"Match queue</span>", landing.data)
-        self.assertIn(b"<strong>1</strong>", landing.data)
 
         self.login("owner@example.com")
         dashboard = self.client.get("/dashboard")

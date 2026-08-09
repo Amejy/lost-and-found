@@ -29,7 +29,6 @@ def serialize_user(user):
         "email": user.email,
         "role": user.role.value,
         "is_active": user.is_active,
-        "theme_preference": getattr(user, "theme_preference", "system"),
         "email_notifications_enabled": getattr(user, "email_notifications_enabled", True),
         "claim_notifications_enabled": getattr(user, "claim_notifications_enabled", True),
         "match_notifications_enabled": getattr(user, "match_notifications_enabled", True),
