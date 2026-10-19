@@ -1,9 +1,12 @@
 import tempfile
 import unittest
 import re
+from io import BytesIO
 from datetime import date
 from pathlib import Path
 from unittest.mock import patch
+
+from werkzeug.datastructures import FileStorage
 
 from backend.app import create_app
 from backend.app.extensions import db
@@ -19,6 +22,7 @@ from backend.app.models import (
     User,
     UserRole,
 )
+from backend.app.utils import image_url, save_image
 
 
 class FoundItUserFlowTestCase(unittest.TestCase):
@@ -96,6 +100,26 @@ class FoundItUserFlowTestCase(unittest.TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"Welcome back", response.data)
+
+    def test_invalid_supabase_configuration_falls_back_to_local_image_storage(self):
+        """A missing Render/Supabase setting must not break a report upload."""
+        with self.app.app_context():
+            self.app.config.update(
+                STORAGE_BACKEND="supabase",
+                SUPABASE_URL="not-a-url",
+                SUPABASE_SERVICE_ROLE_KEY="test-key",
+            )
+            filename = save_image(
+                FileStorage(
+                    stream=BytesIO(b"image bytes"),
+                    filename="backpack.png",
+                    content_type="image/png",
+                )
+            )
+
+            self.assertTrue(filename.endswith(".png"))
+            self.assertTrue((Path(self.app.config["UPLOAD_FOLDER"]) / filename).exists())
+            self.assertEqual(image_url(filename), f"/uploads/{filename}")
 
     def logout(self):
         response = self.client.post("/logout", follow_redirects=True)
